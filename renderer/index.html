@@ -333,7 +333,7 @@
 
             <!-- Accounts Table -->
             <div class="queue-table-wrapper">
-              <div style="display: grid; grid-template-columns: 40px 1.5fr 1fr 1fr 1.2fr 1fr 140px; padding: 12px 16px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--border-color); font-size: 12px; font-weight: 600; color: var(--text-sub); text-transform: uppercase;">
+              <div style="display: grid; grid-template-columns: 40px 1.8fr 110px 120px 130px 170px 240px; padding: 12px 16px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--border-color); font-size: 12px; font-weight: 600; color: var(--text-sub); text-transform: uppercase;">
                 <div><input type="checkbox" id="chkSelectAllAccounts"></div>
                 <div>TÀI KHOẢN</div>
                 <div>NỀN TẢNG</div>
@@ -824,6 +824,122 @@ https://www.facebook.com/reel/..."></textarea>
         </div>
       </div>
 
+    </div>
+  </div>
+
+  
+  <!-- MODAL: CÀI ĐẶT TÀI KHOẢN (IMAGE 4 PARITY) -->
+  <div class="modal-overlay" id="modalAccountSettings">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="settingAccModalTitle" style="font-size: 16px; font-weight: 700;">Sumaila Katun</h3>
+        <button class="modal-close" id="btnCloseAccountSettings">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <!-- Header Card -->
+        <div class="modal-account-card">
+          <img id="settingAccAvatar" class="acc-avatar" src="" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'44\' height=\'44\'><circle cx=\'22\' cy=\'22\' r=\'22\' fill=\'%23ec4899\'/></svg>'">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div id="settingAccName" style="font-size: 15px; font-weight: 700; color: var(--text-main);">Sumaila Katun</div>
+            <div id="settingAccMeta" style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-sub);">
+              <span id="settingAccPlatformBadge" style="display: flex; align-items: center; gap: 4px; color: var(--brand-cyan); font-weight: 600;">
+                Facebook
+              </span>
+              <span>•</span>
+              <span id="settingAccStatusPill" class="badge badge-success" style="padding: 1px 7px; font-size: 11px;">Đã kết nối</span>
+              <span>•</span>
+              <span id="settingAccLastCheck" style="color: var(--text-muted); font-size: 11px;">9/28/2026, 11:18:28 PM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Controls -->
+        <div style="display: flex; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btnTabSettingBrowser" style="background: rgba(255,35,157,0.18); border-color: var(--primary-accent); color: #fff;">
+            ⭐ Kết nối trình duyệt
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btnTabSettingCookie">
+            📥 Import cookie
+          </button>
+        </div>
+
+        <!-- Tab 1: Kết nối trình duyệt -->
+        <div id="secSettingBrowser" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="box-tip-gold">
+            <div style="font-weight: 700; font-size: 13px; color: #fbbf24; margin-bottom: 4px;">
+              ⭐ Ưu tiên: mở trình duyệt và đăng nhập tay
+            </div>
+            <div style="font-size: 12px; color: #e5e7eb; line-height: 1.4;">
+              Mở trình duyệt. Bạn đăng nhập tay, tool lấy tên/avatar & Token EAABs tự động.
+            </div>
+          </div>
+
+          <button class="btn-cta-login" id="btnActionReLoginBrowser">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+            Mở trình duyệt & đăng nhập
+          </button>
+        </div>
+
+        <!-- Tab 2: Import Cookie -->
+        <div id="secSettingCookie" style="display: none; flex-direction: column; gap: 10px;">
+          <textarea class="form-textarea" id="settingCookieInput" rows="4" placeholder="Dán cookie c_user=...; xs=... hoặc mảng JSON"></textarea>
+          <button class="btn btn-secondary btn-sm" id="btnActionSaveCookie" style="width: 100%;">
+            Lưu cookie & Kết nối lại
+          </button>
+        </div>
+
+        <!-- Reassurance Notice -->
+        <div class="box-safety-green">
+          Toàn bộ dữ liệu ở dưới máy, Kenzious Reel Studio đảm bảo an toàn tuyệt đối khi đăng nhập tài khoản.
+        </div>
+
+        <!-- Fingerprint Clean Device Checkbox -->
+        <div class="box-setting-row">
+          <span style="font-size: 13px; font-weight: 500; color: var(--text-main);">
+            Tạo thành thiết bị sạch (Thay đổi Fingerprint cơ bản)
+          </span>
+          <input type="checkbox" id="chkSettingCleanDevice" checked style="width: 17px; height: 17px; accent-color: var(--brand-magenta); cursor: pointer;">
+        </div>
+
+        <!-- Proxy Config Row -->
+        <div class="box-proxy-config">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Cấu hình Proxy</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="txtProxyToggleState" style="font-size: 12px; color: var(--text-muted);">Off</span>
+              <label class="switch-wrapper">
+                <input type="checkbox" id="chkProxyToggle">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
+          
+          <div id="proxyOffNotice" style="font-size: 12px; color: var(--text-muted);">
+            Tắt proxy — kết nối trực tiếp.
+          </div>
+
+          <div id="proxyConfigDetails" style="display: none; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="proxy-type-btn active" id="btnProxyTypeSocks">SOCKS5</button>
+              <button type="button" class="proxy-type-btn" id="btnProxyTypeHttp">HTTPS</button>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">
+              Định dạng: IP:PORT:USER:PASS hoặc IP:PORT
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" class="form-input" id="inputSettingProxy" placeholder="IP:PORT:USER:PASS" style="flex: 1; font-family: monospace; font-size: 12px;">
+              <button class="btn btn-secondary btn-sm" id="btnCheckAndSaveProxy">Kiểm tra & Lưu</button>
+            </div>
+            <div id="proxyFeedbackMsg" style="font-size: 12px; font-weight: 500;"></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCloseAccountSettingsFooter">Đóng</button>
+      </div>
     </div>
   </div>
 

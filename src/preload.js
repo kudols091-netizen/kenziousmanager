@@ -29,9 +29,12 @@ contextBridge.exposeInMainWorld('api', {
   mixAudioDucking: (videoPath, voicePath, outputPath, duckingVol) => ipcRenderer.invoke('ai:mixAudioDucking', videoPath, voicePath, outputPath, duckingVol),
 
   // Stage 3: Channel Manager & Publishing
-  importCookies: (platform, cookies, proxy, name) => ipcRenderer.invoke('channel:importCookies', platform, cookies, proxy, name),
-  interactiveLogin: (platform, proxy) => ipcRenderer.invoke('channel:interactiveLogin', platform, proxy),
+  importCookies: (platform, cookies, proxy, name, options) => ipcRenderer.invoke('channel:importCookies', platform, cookies, proxy, name, options),
+  interactiveLogin: (platform, proxy, options) => ipcRenderer.invoke('channel:interactiveLogin', platform, proxy, options),
   checkAccountStatus: (id) => ipcRenderer.invoke('channel:checkStatus', id),
+  openBrowser: (accountId) => ipcRenderer.invoke('channel:openBrowser', accountId),
+  updateAccountSettings: (accountId, patch) => ipcRenderer.invoke('channel:updateSettings', accountId, patch),
+  getAccountToken: (accountId) => ipcRenderer.invoke('channel:getToken', accountId),
   addToPublishQueue: (videoPath, accounts, options) => ipcRenderer.invoke('publisher:addToQueue', videoPath, accounts, options),
   getPublishQueue: () => ipcRenderer.invoke('publisher:getQueue'),
   processPublishQueue: () => ipcRenderer.invoke('publisher:processQueue'),

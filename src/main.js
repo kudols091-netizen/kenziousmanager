@@ -120,16 +120,28 @@ ipcMain.handle('ai:mixAudioDucking', async (e, videoPath, voicePath, outputPath,
 });
 
 // ------------------- Stage 3: Channel Manager & Publisher IPC -------------------
-ipcMain.handle('channel:importCookies', async (e, platform, cookies, proxy, name) => {
-  return await channelManager.importCookies(platform, cookies, proxy, name);
+ipcMain.handle('channel:importCookies', async (e, platform, cookies, proxy, name, options) => {
+  return await channelManager.importCookies(platform, cookies, proxy, name, options);
 });
 
-ipcMain.handle('channel:interactiveLogin', async (e, platform, proxy) => {
-  return await channelManager.interactiveLogin(platform, proxy, (msg) => sendLog(msg));
+ipcMain.handle('channel:interactiveLogin', async (e, platform, proxy, options) => {
+  return await channelManager.interactiveLogin(platform, proxy, (msg) => sendLog(msg), options);
 });
 
 ipcMain.handle('channel:checkStatus', async (e, id) => {
   return await channelManager.checkAccountStatus(id);
+});
+
+ipcMain.handle('channel:openBrowser', async (e, accountId) => {
+  return await channelManager.openProfileBrowser(accountId);
+});
+
+ipcMain.handle('channel:updateSettings', async (e, accountId, patch) => {
+  return channelManager.updateAccountSettings(accountId, patch);
+});
+
+ipcMain.handle('channel:getToken', async (e, accountId) => {
+  return await channelManager.getAccountToken(accountId);
 });
 
 ipcMain.handle('publisher:addToQueue', (e, videoPath, accounts, options) => {
