@@ -9,11 +9,15 @@ class ChannelManager {
   }
 
   getExecutablePath() {
+    const localAppData = process.env.LOCALAPPDATA || '';
     const chromePaths = [
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      path.join(localAppData, 'Google\\Chrome\\Application\\chrome.exe'),
       'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-      'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
+      'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+      path.join(localAppData, 'Microsoft\\Edge\\Application\\msedge.exe'),
+      'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe'
     ];
     for (const p of chromePaths) {
       if (fs.existsSync(p)) return p;
@@ -95,6 +99,17 @@ class ChannelManager {
     return account;
   }
 
+  // Hủy tất cả các phiên trình duyệt đang mở
+  cancelAllActiveBrowsers() {
+    for (const [id, browser] of this.activeBrowsers.entries()) {
+      try {
+        browser.close().catch(() => {});
+      } catch (e) {}
+    }
+    this.activeBrowsers.clear();
+    return true;
+  }
+
   // 2. Mở trình duyệt trực quan đăng nhập và tự động lưu phiên
   async interactiveLogin(platform, proxy = '', onStatusUpdate = () => {}) {
     const execPath = this.getExecutablePath();
@@ -103,22 +118,25 @@ class ChannelManager {
     }
 
     const accountId = `acc_${Date.now()}`;
-    const profileDir = path.join(__dirname, '..', '..', 'data', 'profiles', accountId);
+    const profileDir = path.resolve(__dirname, '..', '..', 'data', 'profiles', accountId);
     if (!fs.existsSync(profileDir)) fs.mkdirSync(profileDir, { recursive: true });
+
+    const targetUrl = this.getPlatformLoginUrl(platform);
 
     const args = [
       `--user-data-dir=${profileDir}`,
       '--no-first-run',
       '--no-default-browser-check',
       '--disable-blink-features=AutomationControlled',
-      '--window-size=1050,750'
+      '--start-maximized',
+      targetUrl // Tải thẳng URL đích ngay từ frame đầu tiên để không bị màn hình trắng about:blank
     ];
 
     if (proxy && proxy.trim()) {
       args.push(`--proxy-server=${proxy.trim()}`);
     }
 
-    onStatusUpdate('Đang khởi động trình duyệt đăng nhập...');
+    onStatusUpdate('Đang mở trình duyệt trực quan...');
 
     const browser = await puppeteer.launch({
       executablePath: execPath,
@@ -132,10 +150,10 @@ class ChannelManager {
     const pages = await browser.pages();
     const page = pages.length > 0 ? pages[0] : await browser.newPage();
 
-    const targetUrl = this.getPlatformLoginUrl(platform);
-    await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
+    // Đưa cửa sổ lên phía trước
+    await page.bringToFront().catch(() => {});
 
-    onStatusUpdate(`Đã mở trang đăng nhập ${platform}. Vui lòng tự đăng nhập trên cửa sổ Chrome vừa mở...`);
+    onStatusUpdate(`Trình duyệt đã mở ở phía trước. Hãy đăng nhập tài khoản ${platform} của bạn...`);
 
     // Polling kiểm tra đăng nhập thành công
     return new Promise((resolve, reject) => {
@@ -143,6 +161,7 @@ class ChannelManager {
       const interval = setInterval(async () => {
         try {
           pollCount++;
+
           // Kiểm tra xem trình duyệt có bị người dùng tắt không
           if (!browser.isConnected()) {
             clearInterval(interval);
@@ -151,39 +170,27 @@ class ChannelManager {
             return;
           }
 
-          // Tự động đóng các popup cản trở (Instagram "Not Now", v.v.)
-          try {
-            const notNowButtons = await page.$$('button');
-            for (const btn of notNowButtons) {
-              const text = await page.evaluate(el => el.textContent, btn);
-              if (text && (text.includes('Lúc khác') || text.includes('Not Now') || text.includes('Save Info'))) {
-                await btn.click().catch(() => {});
-              }
-            }
-          } catch (e) {}
-
-          const currentCookies = await page.cookies();
+          const currentCookies = await page.cookies().catch(() => []);
           let loggedIn = false;
           let displayName = `${platform}_${Date.now().toString().slice(-4)}`;
           let avatar = '';
 
+          const curUrl = page.url();
+
           if (platform === 'facebook') {
-            const hasCUser = currentCookies.some(c => c.name === 'c_user');
-            if (hasCUser) {
+            const cUser = currentCookies.find(c => c.name === 'c_user');
+            if (cUser) {
               loggedIn = true;
-              const cUser = currentCookies.find(c => c.name === 'c_user')?.value;
-              displayName = `FB_${cUser || 'Profile'}`;
+              displayName = `FB_${cUser.value}`;
             }
           } else if (platform === 'tiktok') {
             const hasSession = currentCookies.some(c => c.name === 'sessionid');
-            const url = page.url();
-            if (hasSession || (!url.includes('/login') && url.includes('tiktok.com'))) {
+            if (hasSession || (!curUrl.includes('/login') && curUrl.includes('tiktok.com/@'))) {
               loggedIn = true;
               displayName = `TikTok_Creator`;
             }
           } else if (platform === 'youtube') {
-            const url = page.url();
-            if (url.includes('studio.youtube.com') && !url.includes('accounts.google.com')) {
+            if (curUrl.includes('studio.youtube.com') && !curUrl.includes('accounts.google.com')) {
               loggedIn = true;
               displayName = `YouTube_Studio`;
             }
@@ -193,9 +200,20 @@ class ChannelManager {
               loggedIn = true;
               displayName = `Instagram_User`;
             }
+          } else if (platform === 'threads') {
+            const hasSession = currentCookies.some(c => c.name === 'sessionid');
+            if (hasSession) {
+              loggedIn = true;
+              displayName = `Threads_User`;
+            }
+          } else if (platform === 'zalo') {
+            const hasSek = currentCookies.some(c => c.name === 'zpw_sek');
+            if (hasSek || curUrl.includes('video.zalo.me/creator')) {
+              loggedIn = true;
+              displayName = `Zalo_Creator`;
+            }
           } else {
-            // Generic check
-            if (currentCookies.length > 5 && !page.url().includes('login')) {
+            if (currentCookies.length > 5 && !curUrl.includes('login')) {
               loggedIn = true;
             }
           }
@@ -204,14 +222,17 @@ class ChannelManager {
             clearInterval(interval);
             onStatusUpdate('Đăng nhập thành công! Đang lưu thông tin phiên...');
 
-            // Lưu cookie ra file
+            // Chờ 1 giây để cookie phiên đồng bộ đầy đủ
+            await new Promise(r => setTimeout(r, 1000));
+            const finalCookies = await page.cookies().catch(() => currentCookies);
+
+            // Lưu cookie ra profile folder
             fs.writeFileSync(
               path.join(profileDir, 'cookies.json'),
-              JSON.stringify(currentCookies, null, 2),
+              JSON.stringify(finalCookies, null, 2),
               'utf-8'
             );
 
-            // Đóng trình duyệt
             await browser.close().catch(() => {});
             this.activeBrowsers.delete(accountId);
 
@@ -222,7 +243,7 @@ class ChannelManager {
               displayName,
               avatar,
               proxy: proxy.trim(),
-              cookies: currentCookies,
+              cookies: finalCookies,
               profileDir,
               status: 'connected',
               method: 'interactive_login',
@@ -236,34 +257,30 @@ class ChannelManager {
             resolve(newAccount);
           }
 
-          // Timeout sau 5 phút nếu không đăng nhập
-          if (pollCount > 150) {
+          // Timeout sau 10 phút nếu người dùng chưa hoàn tất
+          if (pollCount > 300) {
             clearInterval(interval);
             await browser.close().catch(() => {});
             this.activeBrowsers.delete(accountId);
-            reject(new Error('Hết thời gian chờ đăng nhập (Timeout 5 phút).'));
+            reject(new Error('Hết thời gian chờ đăng nhập (Timeout 10 phút).'));
           }
-        } catch (err) {
-          // Ignore polling errors
+        } catch (e) {
+          // Bỏ qua lỗi tạm thời khi trang đang chuyển hướng
         }
       }, 2000);
     });
   }
 
-  // 3. Kiểm tra trạng thái sống (Alive Check)
-  async checkAccountStatus(accountId) {
-    const accounts = storage.getAccounts();
-    const acc = accounts.find(a => a.id === accountId);
-    if (!acc) return null;
+  // 3. Kiểm tra tính sống còn của tài khoản
+  async checkAccountStatus(id) {
+    const acc = storage.getAccounts().find(a => a.id === id);
+    if (!acc) return false;
 
+    const isLive = (acc.cookies && acc.cookies.length > 0);
+    acc.status = isLive ? 'connected' : 'expired';
     acc.lastCheck = Date.now();
-    if (acc.cookies && acc.cookies.length > 0) {
-      acc.status = 'connected';
-    } else {
-      acc.status = 'disconnected';
-    }
-    storage.saveAccounts(accounts);
-    return acc;
+    storage.updateAccount(acc);
+    return isLive;
   }
 }
 
