@@ -1,0 +1,160 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800;900&display=swap');
+
+:root, [data-theme="dark"] {
+  --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  
+  /* Brand Background Tokens (Dark Obsidian & Space Navy) */
+  --bg-primary: #0f0d23;
+  --bg-secondary: #16132e;
+  --bg-tertiary: #241c3d;
+  --bg-card: rgba(22, 19, 46, 0.82);
+  --bg-card-hover: rgba(36, 28, 61, 0.92);
+  --bg-input: rgba(15, 13, 35, 0.85);
+
+  /* Borders & Dividers */
+  --border-color: rgba(166, 126, 255, 0.24);
+  --border-focus: rgba(255, 35, 157, 0.6);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+
+  /* Typography Colors */
+  --text-primary: #ffffff;
+  --text-main: #ffffff;
+  --text-secondary: #b8accf;
+  --text-muted: #8d7ea8;
+  --text-dim: #605179;
+
+  /* Official Kenzious Logo Color Palette */
+  --primary-accent: #ff239d;      /* Neon Magenta */
+  --primary-hover: #e324dd;
+  --brand-cyan: #19c8ff;          /* Electric Cyan */
+  --brand-violet: #8c4fff;        /* Cyber Violet */
+  --brand-purple: #9b3dff;        /* Deep Violet */
+  --brand-pink: #ff239d;
+
+  /* Functional Status Colors */
+  --success-color: #20d990;
+  --danger-color: #ff4e72;
+  --warning-color: #ffb83d;
+  --info-color: #19c8ff;
+
+  --success: #20d990;
+  --danger: #ff4e72;
+  --warning: #ffb83d;
+  --info: #19c8ff;
+
+  /* Signature Brand Gradients */
+  --logo-gradient: linear-gradient(90deg, #19c8ff 0%, #8c4fff 55%, #ff239d 100%);
+  --accent-gradient: linear-gradient(100deg, #ff239d 0%, #9b3dff 100%);
+  --accent-gradient-hover: linear-gradient(100deg, #ff4eb0 0%, #ad5aff 100%);
+  --cyan-gradient: linear-gradient(135deg, #19c8ff 0%, #8c4fff 100%);
+
+  /* Neon Shadows & Glows */
+  --accent-glow: 0 0 20px rgba(255, 35, 157, 0.45);
+  --cyan-glow: 0 0 20px rgba(25, 200, 255, 0.4);
+  --btn-glow: 0 8px 20px rgba(226, 34, 190, 0.28);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+  /* Geometry & Motion */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f4f0fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #efe9fa;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: #ffffff;
+  --bg-input: #ffffff;
+  --border-color: #e7ddf6;
+  --border-focus: #ff239d;
+  --text-primary: #1b1030;
+  --text-main: #1b1030;
+  --text-secondary: #6b5a86;
+  --text-muted: #8a78a6;
+  --text-dim: #b3a5ca;
+  --primary-accent: #ff239d;
+  --primary-hover: #d81f88;
+  --success-color: #0f9e6e;
+  --danger-color: #e11d48;
+  --warning-color: #b46a00;
+  --info-color: #0284c7;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(25, 200, 255, 0.10) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 35, 157, 0.12) 0%, transparent 40%),
+    url('../../assets/Background-Kenzious.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-size: 13px;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(166, 126, 255, 0.25);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-accent);
+}
+
+/* Typography Utility Classes */
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-black { font-weight: 900; }
+
+/* Signature Gradient Texts & Buttons */
+.brand-grad {
+  background: var(--logo-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+.btn-brand {
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: var(--btn-glow);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.btn-brand:hover {
+  background: var(--accent-gradient-hover);
+  box-shadow: 0 10px 25px rgba(226, 34, 190, 0.4);
+  transform: translateY(-1px);
+}

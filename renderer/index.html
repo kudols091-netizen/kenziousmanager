@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kenzious Reel v2 — AI Video Studio</title>
+  <link rel="stylesheet" href="styles/theme.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand-mascot" id="brandLogo" title="Kenzious Studio v2">
+          <img src="../assets/Mascot-Kenzious.png" alt="Kenzious Mascot">
+        </div>
+        <nav class="nav-menu">
+          <button class="nav-item active" data-tab="tab-download" data-tooltip="Download / Render">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+          </button>
+          <button class="nav-item" data-tab="tab-channels" data-tooltip="Quản lý kênh">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </button>
+          <button class="nav-item" data-tab="tab-ai" data-tooltip="Chuyển ngữ & Lồng tiếng AI">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/>
+            </svg>
+          </button>
+          <button class="nav-item" data-tab="tab-publish" data-tooltip="Lịch đăng & Xuất bản">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </button>
+          <button class="nav-item" data-tab="tab-toolkit" data-tooltip="Kenzious Kit Tool">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </button>
+          <button class="nav-item" data-tab="tab-settings" data-tooltip="Cài đặt hệ thống">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+            </svg>
+          </button>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="pro-badge" title="Phiên bản cao cấp">PRO • V2</div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-wrapper">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="header-title-box">
+          <h1 class="header-title" id="pageTitle">Download / Render</h1>
+          <span class="header-desc" id="pageDesc">Thêm link để bắt đầu tải & xử lý video ngắn đa nền tảng</span>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary btn-sm" id="btnOpenLog">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Log Console
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btnQuickSettings">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            </svg>
+            Cài đặt
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Views -->
+      <div class="content-body">
+        
+        <!-- TAB 1: DOWNLOAD / RENDER -->
+        <section id="tab-download" class="tab-pane active">
+          <div class="split-view">
+            <!-- Left Controls -->
+            <div class="split-left">
+              <button class="btn btn-primary btn-lg btn-block" id="btnOpenAddModal">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                + THÊM VIDEO / KÊNH
+              </button>
+
+              <!-- AI Translation Toggle -->
+              <div class="control-card">
+                <div class="card-header-toggle">
+                  <div class="card-title-group">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/>
+                    </svg>
+                    <span class="card-title">Chuyển ngữ & Lồng tiếng AI</span>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="toggleAiDubbing">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <p class="card-desc">Bật để tự động dịch kịch bản sang tiếng Việt, lồng tiếng Edge-TTS tự nhiên và gắn phụ đề Karaoke nhảy chữ.</p>
+                <div id="aiOptionsCollapse" style="display: none; margin-top: 8px; flex-direction: column; gap: 8px;">
+                  <div class="form-group">
+                    <label class="form-label">Giọng đọc lồng tiếng</label>
+                    <select class="form-select" id="selectVoice">
+                      <option value="vi-VN-HoaiMyNeural">Hoài My (Nữ Việt Nam - Truyền cảm)</option>
+                      <option value="vi-VN-NamMinhNeural">Nam Minh (Nam Việt Nam - Cuốn hút)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Render Config Toggle -->
+              <div class="control-card">
+                <div class="card-header-toggle">
+                  <div class="card-title-group">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                    <span class="card-title">Cấu hình Render Nâng cao</span>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="toggleRenderConfig" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <p class="card-desc" id="renderConfigDesc">Đang bật — Tự động căn chỉnh dọc 9:16 vertical blur và áp dụng bộ lọc lách bản quyền.</p>
+                
+                <div id="renderOptionsCollapse" style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
+                  <div class="form-group">
+                    <label class="form-label">Cấu hình đã lưu (Preset)</label>
+                    <select class="form-select" id="selectPreset">
+                      <option value="tiktok_viral">TikTok Viral (9:16 Vertical Blur + Karaoke Sub)</option>
+                      <option value="youtube_shorts">YouTube Shorts Clean (9:16 + Watermark)</option>
+                      <option value="anti_copyright_heavy">Lách Bản Quyền Cực Mạnh (Flip + Noise + Crop + Audio)</option>
+                      <option value="original_ratio">Giữ Nguyên Tỉ Lệ Gốc (Chỉ Lồng Tiếng AI)</option>
+                    </select>
+                  </div>
+
+                  <!-- Anti Copyright options -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <input type="checkbox" id="chkMirrorFlip"> Lật gương (Flip)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <input type="checkbox" id="chkAddNoise" checked> Thêm nhiễu vi mô
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <input type="checkbox" id="chkTweakPitch" checked> Biến điệu Audio
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <input type="checkbox" id="chkStripMeta" checked> Xóa EXIF / Meta
+                    </label>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Watermark Logo / Kênh</label>
+                    <input type="text" class="form-input" id="inputWatermark" placeholder="@KenziousReel" value="@KenziousReel">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Tiêu đề Hook (3 giây đầu)</label>
+                    <input type="text" class="form-input" id="inputTitleHook" placeholder="BÍ MẬT KHÔNG THỂ BỎ LỠ ⚡" value="BÍ MẬT KHÔNG THỂ BỎ LỠ ⚡">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Queue & Table -->
+            <div class="split-right">
+              <!-- Platform Quick Filter -->
+              <div class="platform-bar">
+                <button class="platform-chip active" data-platform="all">Tất cả</button>
+                <button class="platform-chip" data-platform="tiktok">TikTok</button>
+                <button class="platform-chip" data-platform="youtube">YouTube</button>
+                <button class="platform-chip" data-platform="facebook">Facebook</button>
+                <button class="platform-chip" data-platform="instagram">Instagram</button>
+                <button class="platform-chip" data-platform="douyin">Douyin</button>
+                <button class="platform-chip" data-platform="bilibili">Bilibili</button>
+                <button class="platform-chip" data-platform="rednote">Red Note</button>
+              </div>
+
+              <!-- Empty State Placeholder (when no videos) -->
+              <div class="empty-state" id="emptyQueueState">
+                <div class="empty-mascot-circle">
+                  <img src="../assets/Mascot-Kenzious.png" alt="Kenzious Logo">
+                </div>
+                <p class="empty-title">Chưa có video — thêm link / kênh rồi quét ngay.<br>Danh sách video sẽ hiển thị tại đây.</p>
+                
+                <span class="quick-start-title">BẮT ĐẦU NHANH</span>
+                <div class="quick-cards-grid">
+                  <div class="quick-card" id="cardGuideRender">
+                    <div class="quick-card-icon">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                      </svg>
+                    </div>
+                    <span class="quick-card-name">Hướng dẫn cài đặt, render</span>
+                    <span class="quick-card-desc">Cấu hình, tải, render 9:16, lách bản quyền...</span>
+                  </div>
+
+                  <div class="quick-card" id="cardGuideMulti">
+                    <div class="quick-card-icon">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                      </svg>
+                    </div>
+                    <span class="quick-card-name">Hướng dẫn đăng đa kênh</span>
+                    <span class="quick-card-desc">YouTube, TikTok, Facebook Reels, Zalo...</span>
+                  </div>
+
+                  <div class="quick-card" id="cardGuideAI">
+                    <div class="quick-card-icon">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/>
+                      </svg>
+                    </div>
+                    <span class="quick-card-name">Lồng tiếng AI & Subtitle</span>
+                    <span class="quick-card-desc">Dịch kịch bản tự động, Edge-TTS giọng chuẩn...</span>
+                  </div>
+
+                  <div class="quick-card" id="cardGuideSupport">
+                    <div class="quick-card-icon">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                      </svg>
+                    </div>
+                    <span class="quick-card-name">Nhóm hỗ trợ kỹ thuật</span>
+                    <span class="quick-card-desc">Zalo, Telegram cộng đồng Kenzious VIP</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Video Queue List (Hidden when empty) -->
+              <div class="queue-table-wrapper" id="videoQueueWrapper" style="display: none;">
+                <div class="table-header">
+                  <div><input type="checkbox" id="chkSelectAllVideos"></div>
+                  <div>Ảnh bìa</div>
+                  <div>Tiêu đề / Kênh</div>
+                  <div>Nền tảng</div>
+                  <div>Trạng thái</div>
+                  <div style="text-align: right;">Thao tác</div>
+                </div>
+                <div id="videoQueueList">
+                  <!-- Dynamic rows -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Execution Action Bar -->
+          <div class="bottom-bar">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; color: var(--text-muted);">Thư mục xuất:</span>
+              <input type="text" id="inputOutputDir" class="form-input" style="width: 260px;" readonly>
+              <button class="btn btn-secondary btn-sm" id="btnBrowseOutputDir">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                Chọn
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btnOpenOutputDir">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+                Mở
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <button class="btn btn-secondary" id="btnDeleteSelectedVideos">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Xóa đã chọn (<span id="selectedCountText">0</span>)
+              </button>
+              <button class="btn btn-secondary" id="btnTestRender15s">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                </svg>
+                Render thử (15s)
+              </button>
+              <button class="btn btn-primary btn-lg" id="btnBatchExecute">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                ⚡ XỬ LÝ HÀNG LOẠT
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: QUẢN LÝ KÊNH (CHANNELS) -->
+        <section id="tab-channels" class="tab-pane">
+          <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1; overflow-y: auto;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <input type="text" class="form-input" id="searchChannelInput" placeholder="Tìm tài khoản..." style="width: 280px;">
+                <select class="form-select" id="filterChannelPlatform" style="width: 160px;">
+                  <option value="all">Tất cả nền tảng</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="threads">Threads</option>
+                  <option value="zalo">Zalo Video</option>
+                </select>
+                <button class="btn btn-secondary" id="btnCheckAllChannels">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                  Check hàng loạt
+                </button>
+              </div>
+
+              <button class="btn btn-primary" id="btnOpenAddAccountModal">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                + Thêm tài khoản
+              </button>
+            </div>
+
+            <!-- Accounts Table -->
+            <div class="queue-table-wrapper">
+              <div style="display: grid; grid-template-columns: 40px 1.5fr 1fr 1fr 1.2fr 1fr 140px; padding: 12px 16px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--border-color); font-size: 12px; font-weight: 600; color: var(--text-sub); text-transform: uppercase;">
+                <div><input type="checkbox" id="chkSelectAllAccounts"></div>
+                <div>TÀI KHOẢN</div>
+                <div>NỀN TẢNG</div>
+                <div>TRẠNG THÁI</div>
+                <div>PROXY</div>
+                <div>CHECK GẦN NHẤT</div>
+                <div style="text-align: right;">THAO TÁC</div>
+              </div>
+              <div id="accountsTableBody">
+                <!-- Dynamically populated or empty -->
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);" id="emptyAccountsNotice">
+                  Chưa có tài khoản nào được kết nối.<br>Bấm nút <strong>+ Thêm tài khoản</strong> để nạp Cookie hoặc đăng nhập trình duyệt.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: CHUYỂN NGỮ & LỒNG TIẾNG AI (AI STUDIO) -->
+        <section id="tab-ai" class="tab-pane">
+          <div style="padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; overflow-y: auto;">
+            <!-- Left: Voice Synthesizer & Edge-TTS Preview -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <h2 style="font-size: 16px; font-weight: 700; color: var(--text-main);">🎤 Lồng Tiếng Microsoft Edge-TTS (Zero-Cost & Siêu Tự Nhiên)</h2>
+              
+              <div class="control-card">
+                <div class="form-group">
+                  <label class="form-label">Chọn giọng đọc tiếng Việt</label>
+                  <select class="form-select" id="aiVoiceSelector">
+                    <option value="vi-VN-HoaiMyNeural">Hoài My (Nữ - Truyền cảm, ngọt ngào, phù hợp kể chuyện/reels)</option>
+                    <option value="vi-VN-NamMinhNeural">Nam Minh (Nam - Trầm ấm, dứt khoát, bắt tai, tin tức/viral)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Tốc độ đọc (Speed)</label>
+                  <div class="range-slider-wrapper">
+                    <input type="range" class="range-slider" id="voiceSpeedRange" min="-30" max="40" value="0">
+                    <span class="range-value" id="voiceSpeedVal">0%</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Cao độ giọng (Pitch)</label>
+                  <div class="range-slider-wrapper">
+                    <input type="range" class="range-slider" id="voicePitchRange" min="-20" max="20" value="0">
+                    <span class="range-value" id="voicePitchVal">0Hz</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Mẫu kịch bản nói thử (Demo Preview)</label>
+                  <textarea class="form-textarea" id="previewTtsText" rows="3">Chào bạn! Đây là giọng đọc trí tuệ nhân tạo trên phần mềm Kenzious Reel v2. Kịch bản của bạn sẽ được lồng tiếng cực kỳ cuốn hút!</textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <button class="btn btn-primary" id="btnPlayTtsPreview">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    Nghe thử giọng đọc
+                  </button>
+                  <audio id="audioPreviewPlayer" controls style="display: none; height: 36px;"></audio>
+                </div>
+              </div>
+
+              <!-- Audio Ducking Settings -->
+              <div class="control-card">
+                <h3 style="font-size: 14px; font-weight: 600;">Hòa Trộn Âm Lượng (Audio Ducking)</h3>
+                <p class="card-desc">Tự động giảm nhạc nền gốc xuống khi giọng đọc AI phát ra để người xem nghe rõ ràng nhất.</p>
+                <div class="form-group">
+                  <label class="form-label">Mức âm lượng nền khi có lời đọc</label>
+                  <div class="range-slider-wrapper">
+                    <input type="range" class="range-slider" id="duckingVolumeRange" min="5" max="40" value="18">
+                    <span class="range-value" id="duckingVolumeVal">18%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Subtitles ASS & AI Translation Engine -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <h2 style="font-size: 16px; font-weight: 700; color: var(--text-main);">📝 Cấu Hình Phụ Đề Karaoke & Dịch Kịch Bản</h2>
+
+              <div class="control-card">
+                <h3 style="font-size: 14px; font-weight: 600;">Tạo Phụ Đề Chữ Động (Karaoke ASS)</h3>
+                <p class="card-desc">Hiển thị từng từ theo nhịp đọc của giọng nói, font chữ Google Roboto to rõ, viền đen sắc nét.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label class="form-label">Font chữ</label>
+                    <input type="text" class="form-input" id="subFontName" value="Roboto" readonly>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Cỡ chữ (Font Size)</label>
+                    <input type="number" class="form-input" id="subFontSize" value="38">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Màu chữ chính & Màu nhảy Karaoke</label>
+                  <div style="display: flex; gap: 12px;">
+                    <input type="color" id="subPrimaryColor" value="#ffffff" style="border: none; width: 45px; height: 35px; border-radius: 6px; cursor: pointer;">
+                    <span style="font-size: 13px; line-height: 35px; color: var(--text-muted);">Màu chữ (Trắng)</span>
+                    <input type="color" id="subHighlightColor" value="#f43f5e" style="border: none; width: 45px; height: 35px; border-radius: 6px; cursor: pointer; margin-left: 20px;">
+                    <span style="font-size: 13px; line-height: 35px; color: var(--text-muted);">Màu nhấn (Neon Pink)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LLM Provider config -->
+              <div class="control-card">
+                <h3 style="font-size: 14px; font-weight: 600;">Bộ Máy Dịch Thuật LLM (Viral Script Translator)</h3>
+                <p class="card-desc">Dịch sang văn phong TikTok / Reels tiếng Việt bắt trend, cuốn hút người xem.</p>
+
+                <div class="form-group">
+                  <label class="form-label">Nhà cung cấp AI</label>
+                  <select class="form-select" id="selectAiProvider">
+                    <option value="gemini">Google Gemini (Gemini 1.5 Flash - Khuyên dùng, siêu nhanh)</option>
+                    <option value="openai">OpenAI (GPT-4o Mini)</option>
+                    <option value="deepseek">DeepSeek AI</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">API Key</label>
+                  <input type="password" class="form-input" id="inputAiApiKey" placeholder="Nhập API Key để kích hoạt dịch tự động...">
+                </div>
+
+                <button class="btn btn-secondary" id="btnSaveAiConfig" style="align-self: flex-start;">
+                  Lưu cấu hình AI
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: LỊCH ĐĂNG & XUẤT BẢN (PUBLISHER) -->
+        <section id="tab-publish" class="tab-pane">
+          <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1; overflow-y: auto;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-main);">Hàng Đợi Xuất Bản Video Đa Nền Tảng</h2>
+                <p style="font-size: 13px; color: var(--text-muted);">Tự động đăng bài lên các kênh TikTok, YouTube Shorts, Reels với khoảng nghỉ chống spam.</p>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 13px; color: var(--text-muted);">Khoảng cách đăng:</span>
+                  <select class="form-select" id="selectPostGap" style="width: 140px;">
+                    <option value="15">15 phút / video</option>
+                    <option value="20" selected>20 phút / video</option>
+                    <option value="30">30 phút / video</option>
+                    <option value="45">45 phút / video</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary" id="btnStartPublishing">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                  </svg>
+                  Bắt đầu đăng tự động
+                </button>
+              </div>
+            </div>
+
+            <!-- Publish Queue Table -->
+            <div class="queue-table-wrapper">
+              <div style="display: grid; grid-template-columns: 80px 1.5fr 1fr 1fr 140px; padding: 12px 16px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--border-color); font-size: 12px; font-weight: 600; color: var(--text-sub); text-transform: uppercase;">
+                <div>ID</div>
+                <div>VIDEO</div>
+                <div>KÊNH ĐÍCH</div>
+                <div>TRẠNG THÁI</div>
+                <div style="text-align: right;">THAO TÁC</div>
+              </div>
+              <div id="publishQueueList">
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);" id="emptyPublishNotice">
+                  Hàng đợi xuất bản đang trống.<br>Sau khi render xong video ở Tab 1, bạn có thể chuyển video vào đây để hẹn giờ đăng.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: KENZIOUS KIT (TOOLKIT) -->
+        <section id="tab-toolkit" class="tab-pane">
+          <div style="padding: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; flex: 1; overflow-y: auto;">
+            <!-- Tool 1: Get Token Ads Manager -->
+            <div class="control-card">
+              <div class="quick-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+              </div>
+              <h3 style="font-size: 15px; font-weight: 600;">Lấy Token EAAB Facebook</h3>
+              <p class="card-desc">Bóc tách User Token toàn quyền từ Ads Manager để liên kết các công cụ quản lý Fanpage, Group.</p>
+              <button class="btn btn-secondary btn-block" id="btnExtractEaabToken">Trích xuất Token EAAB</button>
+              <textarea class="form-textarea" id="txtEaabTokenResult" placeholder="Token EAAB sẽ hiển thị tại đây..." readonly rows="3"></textarea>
+            </div>
+
+            <!-- Tool 2: Convert List URL to UID -->
+            <div class="control-card">
+              <div class="quick-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+              <h3 style="font-size: 15px; font-weight: 600;">Convert Link Facebook sang UID</h3>
+              <p class="card-desc">Dán danh sách liên kết profile hoặc fanpage để chuyển đổi hàng loạt sang dãy số UID.</p>
+              <textarea class="form-textarea" id="txtUrlsToConvert" placeholder="https://facebook.com/username... (mỗi link 1 dòng)" rows="3"></textarea>
+              <button class="btn btn-secondary btn-block" id="btnConvertUidList">Chuyển đổi sang UID</button>
+            </div>
+
+            <!-- Tool 3: Tách âm thanh & Vocal -->
+            <div class="control-card">
+              <div class="quick-card-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                </svg>
+              </div>
+              <h3 style="font-size: 15px; font-weight: 600;">Tách Audio / MP3 Nhanh</h3>
+              <p class="card-desc">Trích xuất âm thanh lossless từ bất kỳ video nào trên máy tính chỉ với 1 click.</p>
+              <button class="btn btn-secondary btn-block" id="btnExtractAudioQuick">Chọn Video & Tách MP3</button>
+              <span id="quickAudioResult" style="font-size: 12px; color: var(--success);"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 6: CÀI ĐẶT HỆ THỐNG (SETTINGS) -->
+        <section id="tab-settings" class="tab-pane">
+          <div style="padding: 24px; max-width: 800px; display: flex; flex-direction: column; gap: 20px; flex: 1; overflow-y: auto;">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-main);">Cài Đặt Hệ Thống & Binary Engines</h2>
+
+            <div class="control-card">
+              <h3 style="font-size: 14px; font-weight: 600;">Đường dẫn công cụ Core (FFmpeg / yt-dlp / Python)</h3>
+              
+              <div class="form-group">
+                <label class="form-label">FFmpeg Executable</label>
+                <input type="text" class="form-input" id="settingFfmpegPath" readonly>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">yt-dlp Executable</label>
+                <input type="text" class="form-input" id="settingYtdlpPath" readonly>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Python Path</label>
+                <input type="text" class="form-input" id="settingPythonPath" value="python">
+              </div>
+            </div>
+
+            <div class="control-card">
+              <h3 style="font-size: 14px; font-weight: 600;">Hiệu năng xử lý</h3>
+              <div class="form-group">
+                <label class="form-label">Số luồng render đồng thời (Concurrency)</label>
+                <div class="range-slider-wrapper">
+                  <input type="range" class="range-slider" id="settingConcurrency" min="1" max="4" value="2">
+                  <span class="range-value" id="settingConcurrencyVal">2</span>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="btnSaveAllSettings" style="align-self: flex-start;">
+              Lưu toàn bộ cài đặt
+            </button>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: THÊM VIDEO / KÊNH -->
+  <div class="modal-overlay" id="modalAddVideo">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm Video / Kênh Quét</h3>
+        <button class="modal-close" id="btnCloseAddModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted);">
+          Dán đường link video từ <strong>TikTok, YouTube, Facebook, Instagram, Douyin, Bilibili, Red Note</strong> (Mỗi liên kết một dòng):
+        </p>
+        <textarea class="form-textarea" id="textareaVideoUrls" rows="7" placeholder="https://www.tiktok.com/@user/video/123456789...
+https://youtube.com/shorts/...
+https://www.facebook.com/reel/..."></textarea>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--text-sub);">
+          <span id="detectedUrlsCount">Đã nhận diện: 0 liên kết</span>
+          <span style="color: var(--brand-magenta);">Hỗ trợ 7 nền tảng video ngắn</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelAddModal">Hủy</button>
+        <button class="btn btn-primary" id="btnConfirmAddVideos">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Thêm vào danh sách tải
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: THÊM TÀI KHOẢN -->
+  <div class="modal-overlay" id="modalAddAccount">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm Tài Khoản Nền Tảng</h3>
+        <button class="modal-close" id="btnCloseAccountModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Chọn nền tảng</label>
+          <select class="form-select" id="accountModalPlatform">
+            <option value="facebook">Facebook (Profile, Page, Group)</option>
+            <option value="tiktok">TikTok (TikTok Studio)</option>
+            <option value="youtube">YouTube (YouTube Studio)</option>
+            <option value="instagram">Instagram (Reels)</option>
+            <option value="threads">Threads</option>
+            <option value="zalo">Zalo Video (Creator)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Proxy riêng cho nick (Tùy chọn: IP:Port hoặc IP:Port:User:Pass)</label>
+          <input type="text" class="form-input" id="accountModalProxy" placeholder="Ví dụ: 103.150.20.10:8080">
+        </div>
+
+        <!-- 2 Login Methods Tabs -->
+        <div style="display: flex; gap: 10px; margin-top: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btnTabImportCookie" style="background: rgba(236,72,153,0.2); border-color: var(--brand-magenta);">1. Nhập Cookie</button>
+          <button class="btn btn-secondary btn-sm" id="btnTabInteractiveLogin">2. Đăng nhập trực quan (Chrome)</button>
+        </div>
+
+        <div id="sectionImportCookie" style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+          <label class="form-label">Dán Cookie (JSON mảng hoặc Header cURL)</label>
+          <textarea class="form-textarea" id="accountModalCookieInput" rows="5" placeholder='[{"name": "c_user", "value": "1000..."}, ...] hoặc c_user=1000...; xs=...'></textarea>
+        </div>
+
+        <div id="sectionInteractiveLogin" style="display: none; flex-direction: column; gap: 10px; margin-top: 6px;">
+          <p style="font-size: 13px; color: var(--text-muted);">
+            Ứng dụng sẽ tự động mở một cửa sổ Chrome độc lập. Bạn chỉ cần đăng nhập tài khoản một lần, phần mềm sẽ tự lưu cookie và đóng lại an toàn.
+          </p>
+          <div id="loginStatusFeedback" style="font-size: 13px; color: var(--brand-cyan); font-weight: 500;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelAccountModal">Đóng</button>
+        <button class="btn btn-primary" id="btnSubmitAddAccount">Xác nhận kết nối</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LOG CONSOLE -->
+  <div class="modal-overlay" id="modalLogConsole">
+    <div class="modal-content" style="max-width: 780px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Log Console Hệ Thống (FFmpeg / yt-dlp)</h3>
+        <button class="modal-close" id="btnCloseLogModal">&times;</button>
+      </div>
+      <div class="modal-body" style="background: #05070d; font-family: monospace; font-size: 12px; color: #a3e635; padding: 16px; border-radius: 8px;">
+        <div id="logConsoleOutput" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">[Kenzious Studio v2] Sẵn sàng hoạt động.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="btnClearLog">Xóa log</button>
+        <button class="btn btn-primary btn-sm" id="btnCloseLogFooter">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HƯỚNG DẪN BẮT ĐẦU NHANH (GUIDES) -->
+  <div class="modal-overlay" id="modalGuide">
+    <div class="modal-content" style="max-width: 750px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(236,72,153,0.15); display: flex; align-items: center; justify-content: center; color: var(--brand-magenta);">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          </div>
+          <h3 class="modal-title" id="guideModalTitle">Hướng Dẫn Sử Dụng Kenzious Reel v2</h3>
+        </div>
+        <button class="modal-close" id="btnCloseGuideModal">&times;</button>
+      </div>
+
+      <!-- Navigation Tabs inside Guide -->
+      <div class="guide-tabs-nav">
+        <button class="guide-tab-btn active" data-target="guide-sec-render">⚙️ Cài đặt & Render</button>
+        <button class="guide-tab-btn" data-target="guide-sec-multi">🌐 Đăng đa kênh</button>
+        <button class="guide-tab-btn" data-target="guide-sec-ai">🎙️ Lồng tiếng AI & Sub</button>
+        <button class="guide-tab-btn" data-target="guide-sec-support">💬 Hỗ trợ kỹ thuật</button>
+      </div>
+
+      <div class="modal-body" style="max-height: 520px; overflow-y: auto; padding: 20px;">
+        
+        <!-- SECTION 1: CÀI ĐẶT & RENDER -->
+        <div id="guide-sec-render" class="guide-section active">
+          <div class="guide-callout">
+            💡 <strong>Mục tiêu:</strong> Tải hàng loạt video từ 7 nền tảng (TikTok, YouTube, Facebook, Insta, Douyin, Bilibili, Red Note), tự động chuyển sang khung dọc 9:16 và áp dụng thuật toán lách bản quyền để đăng an toàn.
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">1</div>
+            <div class="step-body">
+              <span class="step-title">Thêm link video hoặc toàn bộ kênh</span>
+              <p class="step-desc">Bấm nút <strong>+ THÊM VIDEO / KÊNH</strong> ở cột bên trái. Dán danh sách link (mỗi dòng một link). Phần mềm sẽ tự động quét thông tin tiêu đề, thời lượng và ảnh bìa.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">2</div>
+            <div class="step-body">
+              <span class="step-title">Chọn cấu hình dọc 9:16 Vertical Blur</span>
+              <p class="step-desc">Bật công tắc <strong>Cấu hình Render Nâng cao</strong>. Chọn preset <em>TikTok Viral</em> hoặc <em>YouTube Shorts</em>. Video sẽ tự động được đặt ở giữa lớp nền mờ Gaussian Blur chuyên nghiệp.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">3</div>
+            <div class="step-body">
+              <span class="step-title">Kích hoạt bộ 4 lớp lách bản quyền AI</span>
+              <p class="step-desc">
+                • <strong>Lật gương:</strong> Đổi chiều khung hình.<br>
+                • <strong>Nhiễu vi mô:</strong> Phá vỡ mã băm pixel MD5/SHA mà mắt người không nhận ra.<br>
+                • <strong>Biến điệu Audio:</strong> Tinh chỉnh nhẹ tần số âm thanh để tránh quét Audio Fingerprint.<br>
+                • <strong>Xóa EXIF:</strong> Xóa sạch dữ liệu metadata của camera gốc.
+              </p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">4</div>
+            <div class="step-body">
+              <span class="step-title">Thử nghiệm và Render hàng loạt</span>
+              <p class="step-desc">Bấm nút <strong>Render thử (15s)</strong> để xem trước chất lượng hình ảnh, âm thanh và phụ đề. Khi ưng ý, bấm <strong>⚡ XỬ LÝ HÀNG LOẠT</strong> để xử lý toàn bộ video tự động.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: ĐĂNG ĐA KÊNH -->
+        <div id="guide-sec-multi" class="guide-section">
+          <div class="guide-callout">
+            💡 <strong>Mục tiêu:</strong> Quản lý danh sách tài khoản đa nền tảng, gắn proxy cô lập và thiết lập lịch đăng giãn cách chống checkpoint tài khoản.
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">1</div>
+            <div class="step-body">
+              <span class="step-title">Mở Quản lý kênh & Thêm tài khoản</span>
+              <p class="step-desc">Bấm icon thứ 2 ở thanh sidebar trái để vào trang <strong>Quản lý kênh</strong>. Bấm nút <strong>+ Thêm tài khoản</strong>.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">2</div>
+            <div class="step-body">
+              <span class="step-title">2 Phương thức kết nối tài khoản</span>
+              <p class="step-desc">
+                • <strong>Cách 1 (Dán Cookie):</strong> Dán cookie dạng JSON hoặc chuỗi cURL header từ tiện ích xuất cookie (J2Team, EditThisCookie...).<br>
+                • <strong>Cách 2 (Đăng nhập trực quan Chrome):</strong> Phần mềm tự khởi động Chrome với thư mục profile riêng biệt. Bạn đăng nhập nick và 2FA như bình thường, tool sẽ tự bóc tách cookie và đóng lại an toàn.
+              </p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">3</div>
+            <div class="step-body">
+              <span class="step-title">Gắn Proxy riêng từng nick</span>
+              <p class="step-desc">Điền thông tin proxy (HTTP hoặc SOCKS5 dạng <code>IP:Port</code> hoặc <code>IP:Port:User:Pass</code>) để mỗi tài khoản chạy trên một IP độc lập, không bị quét chéo.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">4</div>
+            <div class="step-body">
+              <span class="step-title">Thiết lập giãn cách lịch đăng</span>
+              <p class="step-desc">Chuyển sang Tab <strong>Lịch đăng & Xuất bản</strong>. Chọn khoảng nghỉ từ 20 đến 30 phút giữa mỗi video để mô phỏng hành vi người thật và nuôi kênh bền vững.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: LỒNG TIẾNG AI & SUB -->
+        <div id="guide-sec-ai" class="guide-section">
+          <div class="guide-callout">
+            💡 <strong>Mục tiêu:</strong> Tự động chuyển ngữ kịch bản sang tiếng Việt, lồng tiếng Edge-TTS siêu tự nhiên (zero-cost) và tạo phụ đề Karaoke nhảy chữ bắt tai.
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">1</div>
+            <div class="step-body">
+              <span class="step-title">Bật chuyển ngữ & lồng tiếng</span>
+              <p class="step-desc">Ở tab Download/Render, bật công tắc <strong>Chuyển ngữ & Lồng tiếng AI</strong>. Chọn giọng đọc lồng tiếng (Hoài My - Nữ truyền cảm hoặc Nam Minh - Nam trầm ấm).</p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">2</div>
+            <div class="step-body">
+              <span class="step-title">Nghe thử và tinh chỉnh trong AI Studio</span>
+              <p class="step-desc">Mở tab <strong>Chuyển ngữ & Lồng tiếng AI</strong> trên thanh menu. Bạn có thể gõ kịch bản bất kỳ và bấm <strong>Nghe thử giọng đọc</strong> để điều chỉnh thanh Tốc độ (Speed) và Cao độ (Pitch) ưng ý nhất.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">3</div>
+            <div class="step-body">
+              <span class="step-title">Cơ chế Audio Ducking tự động</span>
+              <p class="step-desc">Phần mềm tự động kích hoạt bộ hòa trộn âm thanh FFmpeg: Khi giọng đọc AI cất lời, nhạc nền gốc sẽ tự động giảm xuống 18%, và tự khôi phục khi câu thoại kết thúc.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="step-number">4</div>
+            <div class="step-body">
+              <span class="step-title">Phụ đề Karaoke ASS nhảy chữ</span>
+              <p class="step-desc">Hệ thống tạo file phụ đề ASS chuẩn font Roboto, căn lề dưới an toàn, viền đen chống lóa và màu nhấn Neon Pink đổi màu chính xác theo từng âm tiết phát ra.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: HỖ TRỢ KỸ THUẬT -->
+        <div id="guide-sec-support" class="guide-section">
+          <div class="guide-callout">
+            💡 <strong>Kênh hỗ trợ chính thức:</strong> Đội ngũ kỹ thuật Kenzious luôn đồng hành giải đáp thắc mắc, cập nhật thuật toán reup và hỗ trợ fix lỗi 24/7.
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="control-card" style="align-items: center; text-align: center; padding: 20px;">
+              <div class="quick-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; width: 44px; height: 44px;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+              </div>
+              <h4 style="font-size: 15px; font-weight: 700; margin-top: 8px;">Zalo Hỗ Trợ Kỹ Thuật</h4>
+              <p style="font-size: 12.5px; color: var(--text-muted); margin: 6px 0 12px 0;">Chat trực tiếp 1-1 với Admin để nhận hướng dẫn sử dụng chi tiết.</p>
+              <button class="btn btn-secondary btn-sm btn-block" onclick="copyContactInfo('Zalo: 098.xxx.xxxx (Admin Kenzious)')">Sao chép liên hệ Zalo</button>
+            </div>
+
+            <div class="control-card" style="align-items: center; text-align: center; padding: 20px;">
+              <div class="quick-card-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; width: 44px; height: 44px;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              </div>
+              <h4 style="font-size: 15px; font-weight: 700; margin-top: 8px;">Cộng Đồng Telegram VIP</h4>
+              <p style="font-size: 12.5px; color: var(--text-muted); margin: 6px 0 12px 0;">Tham gia nhóm chia sẻ mẹo làm video triệu view & cập nhật tool mới.</p>
+              <button class="btn btn-secondary btn-sm btn-block" onclick="copyContactInfo('Telegram: @kenzious_support')">Sao chép liên hệ Telegram</button>
+            </div>
+          </div>
+
+          <div class="guide-step-card" style="margin-top: 6px;">
+            <div class="step-number" style="background: rgba(16, 185, 129, 0.2); color: var(--success); box-shadow: none;">✔</div>
+            <div class="step-body">
+              <span class="step-title">Mẹo khắc phục sự cố nhanh</span>
+              <p class="step-desc">
+                • <strong>Video tải bị lỗi:</strong> Vào Cài đặt hệ thống, kiểm tra đường dẫn <code>yt-dlp.exe</code> và <code>ffmpeg.exe</code>.<br>
+                • <strong>Không nghe được tiếng lồng tiếng:</strong> Kiểm tra Python đã cài đặt gói <code>edge-tts</code> chưa hoặc bấm nút "Log Console" để xem chi tiết.<br>
+                • <strong>Tài khoản bị mất cookie:</strong> Sử dụng phương thức đăng nhập bằng Chrome để giữ phiên vĩnh viễn trên máy.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnCloseGuideFooter">Đã hiểu, đóng hướng dẫn</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/tab-download.js"></script>
+  <script src="js/tab-channels.js"></script>
+  <script src="js/tab-ai.js"></script>
+</body>
+</html>

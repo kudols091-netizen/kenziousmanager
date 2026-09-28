@@ -1,0 +1,45 @@
+﻿# Dependencies
+node_modules/
+package-lock.json
+
+# Build and Packaging Output
+dist/
+build/
+output/
+scratch/
+temp/
+*.tmp
+
+# User & Runtime Data
+data/*.json
+!data/presets.json
+data/*.db
+data/*.sqlite
+data/*.sqlite-wal
+data/*.sqlite-shm
+
+# External Tool Executables (Fetch via setup script or place manually)
+bin/*.exe
+bin/*.zip
+bin/ffmpeg
+bin/ffprobe
+bin/yt-dlp
+
+# Environment & Credentials
+.env
+.env.local
+*.pem
+*.key
+cookies*.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
