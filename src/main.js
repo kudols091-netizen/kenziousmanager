@@ -127,6 +127,15 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+// Thoát app khi torrent đang tải: phải đóng WebTorrent trước (socket/module native còn chạy → Electron crash khi thoát)
+let torrentShutdownDone = false;
+app.on('before-quit', (event) => {
+  if (torrentShutdownDone || !torrentManager.client) return;
+  event.preventDefault();
+  torrentShutdownDone = true;
+  torrentManager.destroyClient().finally(() => app.quit());
+});
+
 // Thoát app: tắt ffmpeg / yt-dlp / python còn chạy (cả cây tiến trình), không để lại tiến trình mồ côi
 app.on('will-quit', () => {
   require('./core/process-registry').killAll();

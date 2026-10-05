@@ -123,8 +123,12 @@ class TorrentManager {
           path: destDir
         });
 
-        const infoHash = torrent.infoHash;
-        this.activeTorrents.set(infoHash, torrent);
+        let infoHash = torrent.infoHash || null;
+        const registerTorrent = () => {
+          infoHash = torrent.infoHash;
+          this.activeTorrents.set(infoHash, torrent);
+          this.stallTimers.set(infoHash, stallInterval);
+        };
 
         let lastDownloaded = 0;
         let lastActivity = Date.now();
@@ -144,7 +148,26 @@ class TorrentManager {
             }
           }
         }, 10000);
-        this.stallTimers.set(infoHash, stallInterval);
+        if (torrent.infoHash) registerTorrent(); else torrent.once('infoHash', registerTorrent);
+
+        let selectedFiles = [];
+        let finished = false;
+        const cleanup = () => {
+          clearInterval(stallInterval);
+          if (infoHash) {
+            this.stallTimers.delete(infoHash);
+            this.activeTorrents.delete(infoHash);
+          }
+        };
+        // Xong khi CÁC FILE ĐÃ CHỌN tải đủ (sự kiện 'done' của torrent chỉ phát khi tải hết mọi file → tải chọn lọc
+        // trước đây không bao giờ kết thúc). Xong thì dừng torrent (giữ file) để không seed ngầm tốn băng thông.
+        const finishIfSelectedDone = () => {
+          if (finished || selectedFiles.length === 0 || !selectedFiles.every(f => f.done)) return;
+          finished = true;
+          cleanup();
+          const files = selectedFiles.map(f => path.join(destDir, f.path));
+          torrent.destroy({ destroyStore: false }, () => resolve({ success: true, infoHash, name: torrent.name, files }));
+        };
 
         torrent.on('ready', () => {
           // Bỏ chọn tất cả file
@@ -152,33 +175,49 @@ class TorrentManager {
 
           // Chỉ chọn các file video trong danh sách fileIndices
           const selectedIndices = new Set(fileIndices.map(Number));
+          selectedFiles = [];
           torrent.files.forEach((f, idx) => {
             if (selectedIndices.size === 0) {
               // Mặc định: Tự động chọn tất cả file video > 50MB
               if (/\.(mp4|mkv|mov|webm|avi)$/i.test(f.name) && f.length > 50 * 1024 * 1024) {
                 f.select();
+                selectedFiles.push(f);
               }
             } else if (selectedIndices.has(idx)) {
               f.select();
+              selectedFiles.push(f);
             }
           });
+
+          if (selectedFiles.length === 0) {
+            cleanup();
+            torrent.destroy({ destroyStore: true });
+            reject(new Error('Torrent không có file video nào để tải (cần file video > 50MB, hoặc chọn file cụ thể).'));
+            return;
+          }
+          selectedFiles.forEach(f => f.once('done', finishIfSelectedDone));
 
           onProgress({
             phase: 'started',
             infoHash,
             name: torrent.name,
-            totalLength: torrent.length,
+            totalLength: selectedFiles.reduce((s, f) => s + f.length, 0),
             numPeers: torrent.numPeers
           });
+          finishIfSelectedDone(); // file đã có sẵn trên đĩa từ lần trước
         });
 
         // Báo cáo tiến độ download
         torrent.on('download', () => {
+          // Tiến độ tính trên các file đã chọn (torrent.progress tính cả file bị bỏ qua → gần như luôn 0%)
+          const total = selectedFiles.reduce((s, f) => s + f.length, 0);
+          const got = selectedFiles.reduce((s, f) => s + Math.min(f.length, f.downloaded || 0), 0);
+          const progress = total > 0 ? got / total : 0;
           onProgress({
             phase: 'downloading',
             infoHash,
-            progress: torrent.progress,
-            percent: Math.round(torrent.progress * 100),
+            progress,
+            percent: Math.round(progress * 100),
             downloaded: torrent.downloaded,
             downloadSpeed: torrent.downloadSpeed,
             uploadSpeed: torrent.uploadSpeed,
@@ -187,31 +226,33 @@ class TorrentManager {
           });
         });
 
-        torrent.on('done', () => {
-          clearInterval(stallInterval);
-          this.stallTimers.delete(infoHash);
-          this.activeTorrents.delete(infoHash);
-
-          const downloadedFiles = torrent.files
-            .filter(f => f.progress === 1)
-            .map(f => path.join(destDir, f.path));
-
-          resolve({
-            success: true,
-            infoHash,
-            name: torrent.name,
-            files: downloadedFiles
-          });
-        });
+        torrent.on('done', finishIfSelectedDone);
 
         torrent.on('error', (err) => {
-          clearInterval(stallInterval);
-          this.stallTimers.delete(infoHash);
-          this.activeTorrents.delete(infoHash);
+          cleanup();
           reject(err);
         });
       } catch (err) {
         reject(err);
+      }
+    });
+  }
+
+  // Đóng hẳn WebTorrent (gọi khi thoát app): dừng mọi torrent + socket trước khi tiến trình kết thúc
+  destroyClient() {
+    for (const timer of this.stallTimers.values()) clearInterval(timer);
+    this.stallTimers.clear();
+    this.activeTorrents.clear();
+    const client = this.client;
+    this.client = null;
+    if (!client) return Promise.resolve();
+    return new Promise((resolve) => {
+      const t = setTimeout(resolve, 3000);
+      try {
+        client.destroy(() => { clearTimeout(t); resolve(); });
+      } catch (_) {
+        clearTimeout(t);
+        resolve();
       }
     });
   }
