@@ -104,6 +104,12 @@
     };
   })();
 
+  /* ── 2d) Tab Clone và tab Reel dùng chung danh sách 'reel-clones' nhưng mỗi bên giữ bản riêng trong bộ nhớ.
+   * Báo nhau mỗi khi lưu để bên kia nạp lại — tránh bên này ghi đè thay đổi của bên kia bằng bản cũ. */
+  window.kzNotifyClonesChanged = function (source) {
+    try { window.dispatchEvent(new CustomEvent('kz-clones-changed', { detail: { source: source } })); } catch (e) {}
+  };
+
   /* ── 2c) Đồng bộ proxy của clone sang main process ──
    * Mọi request mang cookie c_user / access token của clone (kể cả chỗ gọi EB.cloneFetch không truyền proxy)
    * sẽ tự đi qua proxy của clone đó. Gọi lại mỗi khi danh sách clone, proxy hoặc token thay đổi. */

@@ -179,16 +179,23 @@ app.on('login', (event, webContents, details, authInfo, callback) => {
 });
 
 // IPC Handler Helpers
-function sendProgress(data) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('progress:update', data);
+// Gửi tới MỌI cửa sổ giao diện (cửa sổ chính + cửa sổ workspace mở thêm), trừ cửa sổ Via:
+// tác vụ khởi chạy từ cửa sổ phụ trước đây không bao giờ thấy progress/log.
+function broadcastToAppWindows(channel, payload) {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (win.isDestroyed()) continue;
+    const url = win.webContents.getURL();
+    if (url && !url.includes('/renderer/index.html')) continue;
+    win.webContents.send(channel, payload);
   }
 }
 
+function sendProgress(data) {
+  broadcastToAppWindows('progress:update', data);
+}
+
 function sendLog(text) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('log:update', text);
-  }
+  broadcastToAppWindows('log:update', text);
 }
 
 // Các setting được spawn trực tiếp → chỉ nhận tên lệnh trơn hoặc đường dẫn tuyệt đối tới .exe
@@ -312,8 +319,8 @@ ipcMain.handle('toolkit:convertUrlsToUid', async (e, urls) => {
   });
 });
 
-ipcMain.handle('ai:checkDemucs', async () => {
-  return await aiPipeline.checkDemucs();
+ipcMain.handle('ai:checkDemucs', async (e, force) => {
+  return await aiPipeline.checkDemucs(!!force);
 });
 
 ipcMain.handle('ai:browserAccountLoginGemini', async (e, options) => {

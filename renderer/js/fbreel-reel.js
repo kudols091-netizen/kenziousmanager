@@ -218,7 +218,8 @@
   function recordPost(rec) { PHIST.unshift(rec); if (PHIST.length > 5000) PHIST.length = 5000; try { localStorage.setItem('reel-posts', JSON.stringify(PHIST)); } catch (e) {} }
   function bumpFail() { STATC.fail = (STATC.fail || 0) + 1; saveSoon(); }
   function bumpCmt(n) { STATC.cmt = (STATC.cmt || 0) + (n || 1); saveSoon(); }
-  function saveClones() { try { kzSecureStore.setItem('reel-clones', CLONES.map(function (c) { return c.raw; }).join('\n')); } catch (e) {} syncProxies(); }
+  function saveClones() { try { kzSecureStore.setItem('reel-clones', CLONES.map(function (c) { return c.raw; }).join('\n')); } catch (e) {} syncProxies(); if (!syncingFromOtherTab && window.kzNotifyClonesChanged) window.kzNotifyClonesChanged('reel'); }
+  var syncingFromOtherTab = false;
   // Báo cho main process proxy + token (kể cả token page) của từng clone → mọi request của clone tự đi đúng proxy
   function syncProxies() { if (window.kenziSyncCloneProxies) window.kenziSyncCloneProxies('reel', CLONES, function (c) { return c.proxy || CLONE_PROXIES[clKey(c)] || ''; }); }
   // Lưu tên page + token page + user token của clone (bền qua F5) — khỏi phải Load Page/Check lại mỗi lần.
@@ -354,6 +355,14 @@
     saveClones();
     renderClones(); renderPages(); updateSummary();
   }
+  // Tab Clone vừa lưu danh sách → nạp lại (giữ token/page đang có theo từng dòng clone), không báo ngược lại
+  window.addEventListener('kz-clones-changed', function (e) {
+    if (e.detail && e.detail.source === 'reel') return;
+    var ta = $('reel-clones'); if (!ta) return;
+    ta.value = kzSecureStore.getItem('reel-clones') || '';
+    syncingFromOtherTab = true;
+    try { applyClones(); } finally { syncingFromOtherTab = false; }
+  });
   function applyPasteClones(txt, mode) {
     var ta = $('reel-clones'); if (!ta) return;
     ta.value = (mode === 'replace') ? txt : ((ta.value ? ta.value + '\n' : '') + txt);

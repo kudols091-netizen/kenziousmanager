@@ -10,7 +10,7 @@
  * Demucs/PyTorch is not installed on the host machine.
  */
 
-const { spawn, execFileSync } = require('child_process');
+const { spawn, execFile } = require('child_process');
 const { track, killTree } = require('./process-registry');
 const path = require('path');
 const fs = require('fs');
@@ -43,23 +43,22 @@ class AudioSeparator {
    * Check if Demucs and PyTorch are installed in the Python environment
    * @returns {Promise<{available: boolean, reason?: string}>}
    */
-  async checkDemucsInstalled() {
-    if (this.demucsAvailable !== null) return this.demucsAvailable;
+  async checkDemucsInstalled(force = false) {
+    // Chỉ nhớ kết quả "đã cài"; "chưa cài" luôn kiểm tra lại (người dùng có thể vừa cài xong)
+    if (!force && this.demucsAvailable && this.demucsAvailable.available) return this.demucsAvailable;
 
     const py = this.getPythonPath();
-    try {
-      // execFileSync (không qua shell): pythonPath lấy từ settings nên không được ghép vào chuỗi lệnh
-      execFileSync(py, ['-c', "import demucs, torch; print('DEMUCS_OK')"], {
-        timeout: 8000,
-        stdio: 'pipe'
-      });
-      this.demucsAvailable = { available: true };
-    } catch (err) {
-      this.demucsAvailable = {
-        available: false,
-        reason: 'Demucs hoặc PyTorch chưa được cài đặt trong môi trường Python. Hệ thống sẽ tự động kích hoạt FFmpeg Phase Cancellation Fallback.'
-      };
-    }
+    // execFile bất đồng bộ (không khoá main process, không qua shell). import torch lần đầu có thể mất >10s.
+    const ok = await new Promise((resolve) => {
+      execFile(py, ['-c', "import demucs, torch; print('DEMUCS_OK')"], { timeout: 60000, windowsHide: true },
+        (err, stdout) => resolve(!err && String(stdout).includes('DEMUCS_OK')));
+    });
+    this.demucsAvailable = ok
+      ? { available: true }
+      : {
+          available: false,
+          reason: 'Demucs hoặc PyTorch chưa được cài đặt trong môi trường Python. Hệ thống sẽ tự động kích hoạt FFmpeg Phase Cancellation Fallback.'
+        };
     return this.demucsAvailable;
   }
 

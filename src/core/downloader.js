@@ -174,9 +174,13 @@ class Downloader {
           callbacks.onLog(`[WebTorrent] ${prog.phase}: ${prog.percent || 0}% (Peers: ${prog.numPeers || 0})`);
         }
       });
+      // startSelectiveDownload chỉ trả về files[] → chọn file video lớn nhất làm file chính để render
+      const videoFiles = (dlRes.files || []).filter(f => /\.(mp4|mkv|mov|webm|avi|flv|ts)$/i.test(f) && fs.existsSync(f));
+      const mainFile = videoFiles.sort((a, b) => fs.statSync(b).size - fs.statSync(a).size)[0] || null;
+      if (!mainFile) throw new Error('Torrent tải xong nhưng không có file video nào.');
       return {
         success: true,
-        filePath: dlRes.filePath,
+        filePath: mainFile,
         files: dlRes.files
       };
     }

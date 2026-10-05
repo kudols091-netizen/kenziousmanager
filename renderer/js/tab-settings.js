@@ -155,53 +155,88 @@ async function loadAllSettingsStudio() {
   }
 }
 
-// 3. Render bảng danh sách 12 gói Ứng dụng (Zoo Parity)
+// 3. Bảng gói mở rộng — hiển thị trạng thái THẬT.
+// Bản này chỉ thực sự dùng Demucs (tách nhạc/thoại khi lồng tiếng). Các gói còn lại chưa có trong bản này:
+// ghi rõ thay vì giả lập "cài đặt" (trước đây chạy thanh tiến trình ngẫu nhiên rồi lưu installed: true).
+const PACKAGE_INSTALL_GUIDES = {
+  demucs: {
+    check: async (force) => {
+      const r = await window.api.checkDemucs(force);
+      return !!(r && r.available);
+    },
+    pipPackages: 'demucs torch torchaudio'
+  }
+};
+const packageRealStatus = {};      // id -> true | false (chưa có key = đang kiểm tra)
+const packageCheckRunning = {};
+
+function packageInstallCommand(guide) {
+  const py = String((currentSettings && currentSettings.pythonPath) || 'python');
+  const pyCmd = /\s/.test(py) ? `"${py}"` : py;
+  return `${pyCmd} -m pip install -U ${guide.pipPackages}`;
+}
+
+function refreshPackageStatus(pkgId, force = false) {
+  const guide = PACKAGE_INSTALL_GUIDES[pkgId];
+  if (!guide || packageCheckRunning[pkgId]) return Promise.resolve();
+  packageCheckRunning[pkgId] = true;
+  if (force) delete packageRealStatus[pkgId];
+  renderPackagesTable();
+  return guide.check(force)
+    .then(ok => { packageRealStatus[pkgId] = ok; })
+    .catch(() => { packageRealStatus[pkgId] = false; })
+    .finally(() => { packageCheckRunning[pkgId] = false; renderPackagesTable(); });
+}
+
 function renderPackagesTable() {
   const tbody = document.getElementById('packagesTableBody');
   if (!tbody) return;
 
-  const pkgStatus = currentSettings.packagesStatus || {};
   let installedCount = 0;
   let totalInstalledBytes = 0;
-
   tbody.innerHTML = '';
 
   PACKAGES_SPEC.forEach(pkg => {
-    const legacyKey = pkg.id.replace('kenzi-', 'zoo-');
-    const isInstalled = Boolean(
-      pkgStatus[pkg.id]?.installed || 
-      pkgStatus[legacyKey]?.installed || 
-      pkgStatus[pkg.id] === true || 
-      pkgStatus[legacyKey] === true
-    );
+    const guide = PACKAGE_INSTALL_GUIDES[pkg.id];
+    const known = Object.prototype.hasOwnProperty.call(packageRealStatus, pkg.id);
+    const isInstalled = !!(guide && packageRealStatus[pkg.id]);
     if (isInstalled) {
       installedCount++;
       totalInstalledBytes += pkg.sizeBytes || 0;
     }
 
+    let actionHtml;
+    if (!guide) {
+      actionHtml = '<span style="color: var(--text-muted); font-size: 11.5px;">Chưa có trong bản này</span>';
+    } else if (!known || packageCheckRunning[pkg.id]) {
+      actionHtml = '<span style="color: var(--text-muted); font-size: 11.5px;">⏳ Đang kiểm tra...</span>';
+    } else if (isInstalled) {
+      actionHtml = `<span style="color: #34d399; font-weight: 600; margin-right: 6px;">✓ Đã cài</span>` +
+        `<button type="button" class="btn btn-secondary btn-xs" data-action="pkgRecheck" data-pkg-id="${escHtml(pkg.id)}">Kiểm tra lại</button>`;
+    } else {
+      actionHtml = `<button type="button" class="btn btn-primary btn-xs btn-install-pkg" data-pkg-id="${escHtml(pkg.id)}" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">📋 Hướng dẫn cài</button>`;
+    }
+
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
     tr.style.fontSize = '12.5px';
-
+    if (!guide) tr.style.opacity = '0.55';
     tr.innerHTML = `
       <td style="padding: 10px 8px; width: 40px; text-align: center;">
-        <input type="checkbox" class="pkg-row-chk" data-pkg-id="${pkg.id}" ${isInstalled ? 'disabled' : ''}>
+        <input type="checkbox" class="pkg-row-chk" data-pkg-id="${escHtml(pkg.id)}" ${guide && known && !isInstalled ? '' : 'disabled'}>
       </td>
       <td style="padding: 10px 8px;">
         <div style="font-weight: 600; color: #ffffff;">${escHtml(pkg.name)}</div>
-        <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${pkg.version}</div>
+        <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${escHtml(pkg.version)}</div>
       </td>
       <td style="padding: 10px 8px; color: #f43f5e; font-weight: 600; white-space: nowrap;">
-        ${pkg.size}
+        ${escHtml(pkg.size)}
       </td>
       <td style="padding: 10px 8px; color: var(--text-muted); line-height: 1.45;">
-        ${pkg.desc}
+        ${escHtml(pkg.desc)}
       </td>
       <td style="padding: 10px 8px; text-align: right; white-space: nowrap;">
-        ${isInstalled 
-          ? `<button type="button" class="btn btn-secondary btn-xs btn-uninstall-pkg" data-pkg-id="${pkg.id}" style="color: #f87171; border-color: rgba(248,113,113,0.3);">🗑️ Gỡ gói</button>`
-          : `<button type="button" class="btn btn-primary btn-xs btn-install-pkg" data-pkg-id="${pkg.id}" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">📥 Cài đặt</button>`
-        }
+        ${actionHtml}
       </td>
     `;
     tbody.appendChild(tr);
@@ -212,44 +247,45 @@ function renderPackagesTable() {
   const badgeSize = document.getElementById('statPackagesSize');
   const badgeVersion = document.getElementById('statPackagesVersion');
 
-  if (badgeCount) badgeCount.innerText = `${installedCount}/12`;
-  if (badgeSize) {
-    const mbTotal = (totalInstalledBytes / (1024 * 1024)).toFixed(1);
-    badgeSize.innerText = `${mbTotal} MB`;
-  }
+  if (badgeCount) badgeCount.innerText = `${installedCount}/${PACKAGES_SPEC.length}`;
+  if (badgeSize) badgeSize.innerText = `${(totalInstalledBytes / (1024 * 1024)).toFixed(1)} MB`;
   if (badgeVersion) {
-    const installedNames = PACKAGES_SPEC.filter(p => pkgStatus[p.id]?.installed).map(p => p.name);
-    badgeVersion.innerText = installedNames.length > 0 ? installedNames.slice(0, 3).join(' · ') + (installedNames.length > 3 ? '...' : '') : 'Chưa có gói';
+    const installedNames = PACKAGES_SPEC.filter(p => packageRealStatus[p.id]).map(p => p.name);
+    badgeVersion.innerText = installedNames.length > 0 ? installedNames.join(' · ') : 'Chưa có gói';
   }
 
-  // Gắn sự kiện cài đặt / gỡ gói cho từng dòng
   tbody.querySelectorAll('.btn-install-pkg').forEach(btn => {
     btn.addEventListener('click', () => {
-      const pkgId = btn.getAttribute('data-pkg-id');
-      const pkg = PACKAGES_SPEC.find(p => p.id === pkgId);
+      const pkg = PACKAGES_SPEC.find(p => p.id === btn.getAttribute('data-pkg-id'));
       if (pkg) openPackageInstallModal(pkg);
     });
   });
 
-  tbody.querySelectorAll('.btn-uninstall-pkg').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const pkgId = btn.getAttribute('data-pkg-id');
-      const pkg = PACKAGES_SPEC.find(p => p.id === pkgId);
-      if (!pkg) return;
-      if (confirm(`Bạn có chắc muốn gỡ gói "${pkg.name}"?`)) {
-        if (!currentSettings.packagesStatus) currentSettings.packagesStatus = {};
-        currentSettings.packagesStatus[pkgId] = { installed: false };
-        await window.api.saveSettings({ packagesStatus: currentSettings.packagesStatus });
-        renderPackagesTable();
-      }
-    });
+  // Modal hướng dẫn đang mở → cập nhật dòng kết quả kiểm tra
+  const resultEl = document.getElementById('pkgModalCheckResult');
+  const modalPkgId = resultEl && resultEl.dataset.pkgId;
+  if (modalPkgId) {
+    if (packageCheckRunning[modalPkgId]) { resultEl.textContent = '⏳ Đang kiểm tra...'; resultEl.style.color = ''; }
+    else if (packageRealStatus[modalPkgId] === true) { resultEl.textContent = '✓ Đã cài thành công'; resultEl.style.color = '#34d399'; }
+    else if (packageRealStatus[modalPkgId] === false) { resultEl.textContent = 'Chưa thấy gói trong Python'; resultEl.style.color = '#f87171'; }
+  }
+
+  // Lần đầu: kiểm tra thật các gói có hỗ trợ
+  Object.keys(PACKAGE_INSTALL_GUIDES).forEach(id => {
+    if (!Object.prototype.hasOwnProperty.call(packageRealStatus, id) && !packageCheckRunning[id]) refreshPackageStatus(id);
   });
 }
 
-// 4. Modal cài đặt Package (Giả lập / Chạy tiến trình tải tài nguyên)
+KZ.action('pkgRecheck', (el) => refreshPackageStatus(el.dataset.pkgId, true));
+
+// 4. Modal hướng dẫn cài gói: hiện lệnh pip thật (đã sao chép sẵn) + kiểm tra lại — không giả lập tiến trình
 let installInterval = null;
 function openPackageInstallModal(pkg) {
+  const guide = PACKAGE_INSTALL_GUIDES[pkg.id];
   const modal = document.getElementById('modalPackageInstall');
+  if (!guide || !modal) return;
+
+  const command = packageInstallCommand(guide);
   const title = document.getElementById('pkgModalTitle');
   const name = document.getElementById('pkgModalName');
   const meta = document.getElementById('pkgModalMeta');
@@ -258,61 +294,20 @@ function openPackageInstallModal(pkg) {
   const progressBar = document.getElementById('pkgModalProgressBar');
   const logBox = document.getElementById('pkgModalLog');
 
-  if (!modal) return;
-
   if (title) title.innerText = `🧩 Cài Đặt: ${pkg.name}`;
   if (name) name.innerText = pkg.name;
-  if (meta) meta.innerText = `Phiên bản: ${pkg.version} · Dung lượng: ${pkg.size}`;
-  if (stepText) stepText.innerText = 'Đang khởi tạo kết nối tải tài nguyên...';
-  if (percentText) percentText.innerText = '0%';
-  if (progressBar) progressBar.style.width = '0%';
-  if (logBox) logBox.innerHTML = `[${new Date().toLocaleTimeString()}] Bắt đầu tải ${pkg.name} (${pkg.size})...<br>`;
+  if (meta) meta.innerText = `Dung lượng: ${pkg.size} · cài qua pip vào Python mà app đang dùng`;
+  if (stepText) stepText.innerText = 'Mở Command Prompt, dán lệnh dưới đây (đã sao chép sẵn), chờ cài xong rồi bấm "Kiểm tra lại".';
+  if (percentText) percentText.innerText = '';
+  if (progressBar && progressBar.parentElement) progressBar.parentElement.style.display = 'none';
+  if (logBox) {
+    logBox.innerHTML = `<div style="user-select: all; color: #e2e8f0;">${escHtml(command)}</div>` +
+      `<div style="margin-top: 10px;"><button type="button" class="btn btn-secondary btn-xs" data-action="pkgRecheck" data-pkg-id="${escHtml(pkg.id)}">🔄 Kiểm tra lại</button>` +
+      ` <span id="pkgModalCheckResult" data-pkg-id="${escHtml(pkg.id)}" style="margin-left: 6px;"></span></div>`;
+  }
+  try { navigator.clipboard.writeText(command); } catch (_) {}
 
   modal.classList.add('active');
-
-  // Mô phỏng tiến trình tải an toàn & bọc lỗi
-  let progress = 0;
-  if (installInterval) clearInterval(installInterval);
-
-  installInterval = setInterval(async () => {
-    progress += Math.floor(Math.random() * 18) + 12;
-    if (progress >= 100) {
-      progress = 100;
-      clearInterval(installInterval);
-      installInterval = null;
-
-      if (stepText) stepText.innerText = '✅ Cài đặt hoàn tất!';
-      if (percentText) percentText.innerText = '100%';
-      if (progressBar) progressBar.style.width = '100%';
-      if (logBox) {
-        logBox.innerHTML += `[${new Date().toLocaleTimeString()}] Kiểm tra SHA-256: OK.<br>`;
-        logBox.innerHTML += `[${new Date().toLocaleTimeString()}] Module ${pkg.name} đã sẵn sàng hoạt động.<br>`;
-      }
-
-      // Lưu trạng thái đã cài vào settings
-      if (!currentSettings.packagesStatus) currentSettings.packagesStatus = {};
-      currentSettings.packagesStatus[pkg.id] = { installed: true, installedAt: Date.now() };
-      await window.api.saveSettings({ packagesStatus: currentSettings.packagesStatus });
-
-      playChime('soft');
-      setTimeout(() => {
-        modal.classList.remove('active');
-        renderPackagesTable();
-      }, 1000);
-    } else {
-      if (percentText) percentText.innerText = `${progress}%`;
-      if (progressBar) progressBar.style.width = `${progress}%`;
-      if (stepText) {
-        if (progress < 40) stepText.innerText = 'Đang tải gói tài nguyên...';
-        else if (progress < 80) stepText.innerText = 'Đang giải nén và kiểm tra phụ thuộc...';
-        else stepText.innerText = 'Đang thiết lập runtime và cấu hình...';
-      }
-      if (logBox && progress % 25 === 0) {
-        logBox.innerHTML += `[${new Date().toLocaleTimeString()}] Đang tải dữ liệu: ${progress}%...<br>`;
-        logBox.scrollTop = logBox.scrollHeight;
-      }
-    }
-  }, 250);
 }
 
 // 5. Cập nhật thẻ trạng thái ưu tiên AI
@@ -708,7 +703,7 @@ function openAddAiModal(defaultProvider = 'gemini', defaultName = '') {
 function initSettingsActions() {
   // Chọn thư mục xuất
   const btnChooseOut = document.getElementById('btnChooseOutputDir');
-  const btnOpenOut = document.getElementById('btnOpenOutputDir');
+  const btnOpenOut = document.getElementById('btnOpenSettingOutputDir');
   const inputOut = document.getElementById('settingOutputDir');
 
   if (btnChooseOut && window.api?.pickDirectory) {

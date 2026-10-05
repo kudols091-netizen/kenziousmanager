@@ -45,66 +45,58 @@ function dedupKey(accountId, destType, destId, videoPath) {
   return `${target}|${p}`;
 }
 
+// Số ffmpeg tạo thumbnail chạy song song tối đa
+const THUMB_CONCURRENCY = 2;
+
 class BatchPublisherService {
   /**
    * Extract video thumbnail frame using ffmpeg and return as base64 Data URL
+   * Chạy bất đồng bộ (không khoá main process), tối đa THUMB_CONCURRENCY ffmpeg cùng lúc,
+   * dùng ffmpeg đi kèm app, có cache + gộp các yêu cầu trùng.
    */
-  getVideoThumbnail(videoPath) {
+  async getVideoThumbnail(videoPath) {
     if (!videoPath || !fs.existsSync(videoPath)) return null;
     if (!this.thumbnailCache) this.thumbnailCache = new Map();
-    if (this.thumbnailCache.has(videoPath)) {
-      return this.thumbnailCache.get(videoPath);
-    }
+    if (this.thumbnailCache.has(videoPath)) return this.thumbnailCache.get(videoPath);
+    if (!this.thumbnailPending) this.thumbnailPending = new Map();
+    if (this.thumbnailPending.has(videoPath)) return this.thumbnailPending.get(videoPath);
 
-    const { execFileSync } = require('child_process');
-    try {
-      const args = [
-        '-ss', '00:00:01',
-        '-i', videoPath,
-        '-vframes', '1',
-        '-vf', 'scale=160:-1',
-        '-f', 'image2pipe',
-        '-vcodec', 'mjpeg',
-        '-'
-      ];
-      const buf = execFileSync('ffmpeg', args, {
-        stdio: ['pipe', 'pipe', 'ignore'],
-        maxBuffer: 5 * 1024 * 1024,
-        timeout: 6000
-      });
-      if (buf && buf.length > 0) {
-        const dataUrl = 'data:image/jpeg;base64,' + buf.toString('base64');
-        this.thumbnailCache.set(videoPath, dataUrl);
-        return dataUrl;
-      }
-    } catch (err) {
-      try {
-        const args0 = [
-          '-ss', '00:00:00',
-          '-i', videoPath,
-          '-vframes', '1',
-          '-vf', 'scale=160:-1',
-          '-f', 'image2pipe',
-          '-vcodec', 'mjpeg',
-          '-'
-        ];
-        const buf0 = execFileSync('ffmpeg', args0, {
-          stdio: ['pipe', 'pipe', 'ignore'],
-          maxBuffer: 5 * 1024 * 1024,
-          timeout: 6000
-        });
-        if (buf0 && buf0.length > 0) {
-          const dataUrl = 'data:image/jpeg;base64,' + buf0.toString('base64');
-          this.thumbnailCache.set(videoPath, dataUrl);
-          return dataUrl;
-        }
-      } catch (e2) {
-        return null;
-      }
-    }
-    return null;
+    const job = (async () => {
+      // Giây thứ 1; video quá ngắn thì lấy khung đầu
+      const dataUrl = (await this._grabFrame(videoPath, '00:00:01')) || (await this._grabFrame(videoPath, '00:00:00'));
+      if (dataUrl) this.thumbnailCache.set(videoPath, dataUrl);
+      return dataUrl;
+    })().finally(() => this.thumbnailPending.delete(videoPath));
+    this.thumbnailPending.set(videoPath, job);
+    return job;
   }
 
+  async _grabFrame(videoPath, seek) {
+    await this._acquireThumbSlot();
+    try {
+      const { execFile } = require('child_process');
+      const ffmpeg = require('./renderer').getFfmpegPath();
+      const args = ['-ss', seek, '-i', videoPath, '-vframes', '1', '-vf', 'scale=160:-1', '-f', 'image2pipe', '-vcodec', 'mjpeg', '-'];
+      const buf = await new Promise((resolve) => {
+        execFile(ffmpeg, args, { encoding: 'buffer', maxBuffer: 5 * 1024 * 1024, timeout: 8000, windowsHide: true },
+          (err, stdout) => resolve(err ? null : stdout));
+      });
+      return buf && buf.length > 0 ? 'data:image/jpeg;base64,' + buf.toString('base64') : null;
+    } finally {
+      this._releaseThumbSlot();
+    }
+  }
+
+  _acquireThumbSlot() {
+    if (!this.thumbQueue) { this.thumbQueue = []; this.thumbActive = 0; }
+    if (this.thumbActive < THUMB_CONCURRENCY) { this.thumbActive++; return Promise.resolve(); }
+    return new Promise(resolve => this.thumbQueue.push(resolve));
+  }
+
+  _releaseThumbSlot() {
+    const next = this.thumbQueue.shift();
+    if (next) next(); else this.thumbActive--;
+  }
 
   constructor() {
     this.isProcessing = false;
@@ -267,8 +259,8 @@ class BatchPublisherService {
       const base = path.basename(vPath);
       const meta = importMetaMap.get(base) || {};
       const defaultTitle = base.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-      let thumb = null;
-      try { thumb = this.getVideoThumbnail(vPath); } catch (e) {}
+      // Thumbnail được giao diện xin sau (bất đồng bộ) — không chạy ffmpeg tuần tự ở đây làm đứng app
+      const thumb = (this.thumbnailCache && this.thumbnailCache.get(vPath)) || null;
       return {
         itemId: 'clip_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
         mediaPath: vPath,

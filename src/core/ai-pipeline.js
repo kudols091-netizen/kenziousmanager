@@ -89,8 +89,8 @@ class AiPipeline {
     return await audioSeparator.separateAudio(inputMedia, outputDir, options);
   }
 
-  async checkDemucs() {
-    return await audioSeparator.checkDemucsInstalled();
+  async checkDemucs(force = false) {
+    return await audioSeparator.checkDemucsInstalled(force);
   }
 
   /**

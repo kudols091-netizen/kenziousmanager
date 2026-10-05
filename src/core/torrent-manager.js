@@ -11,20 +11,13 @@ class TorrentManager {
 
   async getClient() {
     if (!this.client) {
-      const paths = [
-        'webtorrent',
-        'file:///D:/RE%20-%20Jobs/_work/zooreup_source/node_modules/webtorrent/index.js'
-      ];
+      // Chỉ dùng gói 'webtorrent' cài trong app (trước đây có đường dẫn cứng tới máy khác)
       let WebTorrent = null;
-      for (const p of paths) {
-        try {
-          const mod = await import(p);
-          WebTorrent = mod.default || mod;
-          if (WebTorrent) break;
-        } catch {}
-      }
-      if (!WebTorrent) {
-        throw new Error('Không thể tải thư viện WebTorrent.');
+      try {
+        const mod = await import('webtorrent');
+        WebTorrent = mod.default || mod;
+      } catch (err) {
+        throw new Error('Tính năng tải Torrent chưa khả dụng: thiếu thư viện WebTorrent trong bản này (' + err.message + ').');
       }
       this.client = new WebTorrent({
         maxConns: 55,
@@ -53,7 +46,10 @@ class TorrentManager {
     if (!magnetOrBuf) throw new Error('Cần cung cấp link Magnet hoặc đường dẫn file .torrent');
 
     return new Promise((resolve, reject) => {
+      let torrent = null;
       const timeout = setTimeout(() => {
+        // Huỷ torrent đang chờ metadata — nếu không, lần tải sau cùng infoHash sẽ báo trùng torrent
+        if (torrent) { try { torrent.destroy({ destroyStore: true }); } catch (_) {} }
         reject(new Error('Hết thời gian chờ Metadata Torrent (Timeout 60 giây). Vui lòng thử link Magnet khác.'));
       }, 60000);
 
@@ -61,7 +57,7 @@ class TorrentManager {
         const inspectDir = path.join(os.tmpdir(), 'kenzi-torrent-inspect');
         if (!fs.existsSync(inspectDir)) fs.mkdirSync(inspectDir, { recursive: true });
 
-        const torrent = client.add(magnetOrBuf, {
+        torrent = client.add(magnetOrBuf, {
           path: inspectDir,
           destroyStoreOnDestroy: true
         });

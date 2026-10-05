@@ -34,7 +34,7 @@ contextBridge.exposeInMainWorld('api', {
   mixAudioDucking: (videoPath, voicePath, outputPath, options) => ipcRenderer.invoke('ai:mixAudioDucking', videoPath, voicePath, outputPath, options),
   softShortenVi: (text, options) => ipcRenderer.invoke('ai:softShorten', text, options),
   separateAudio: (inputMedia, outputDir, options) => ipcRenderer.invoke('ai:separateAudio', inputMedia, outputDir, options),
-  checkDemucs: () => ipcRenderer.invoke('ai:checkDemucs'),
+  checkDemucs: (force) => ipcRenderer.invoke('ai:checkDemucs', !!force),
   loginGeminiInteractive: (options) => ipcRenderer.invoke('ai:browserAccountLoginGemini', options),
 
   // Stage 3: Channel Manager & Publishing

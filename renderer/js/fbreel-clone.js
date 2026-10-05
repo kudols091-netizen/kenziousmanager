@@ -118,7 +118,7 @@
   function clKey(c) { return c.uid && /^\d{5,}$/.test(c.uid) ? c.uid : c._id; }
 
   /* ───────── Persist (chung với reel-tab) ───────── */
-  function saveClones() { try { kzSecureStore.setItem('reel-clones', CLS.map(function (c) { return c.raw; }).join('\n')); } catch (e) {} saveMeta(); syncProxies(); }
+  function saveClones() { try { kzSecureStore.setItem('reel-clones', CLS.map(function (c) { return c.raw; }).join('\n')); } catch (e) {} saveMeta(); syncProxies(); if (window.kzNotifyClonesChanged) window.kzNotifyClonesChanged('clone'); }
   // Báo cho main process proxy của từng clone → mọi request mang cookie/token của clone tự đi đúng proxy
   function syncProxies() { if (window.kenziSyncCloneProxies) window.kenziSyncCloneProxies('clone', CLS); }
   function saveMeta() {
@@ -699,6 +699,12 @@
       alert('Đang tải Modal Proxy, vui lòng bấm lại sau 1 giây.');
     }
   };
+
+  // Tab Reel vừa lưu danh sách clone → nạp lại để không ghi đè bằng bản cũ trong bộ nhớ
+  window.addEventListener('kz-clones-changed', function (e) {
+    if (e.detail && e.detail.source === 'clone') return;
+    loadClones(); render();
+  });
 
   window.__kzRefreshCloneTab = function () {
     loadClones();
