@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initLogConsole();
   await loadSettings();
   initEventListeners();
+  await initLicenseGuard();
 });
 
 // Tab Switcher
@@ -47,6 +48,14 @@ function initTabs() {
         pageDesc.innerText = titles[targetTab].desc;
       }
       state.currentTab = targetTab;
+
+      if (targetTab === 'tab-publish') {
+        if (typeof window.loadQueueEvents === 'function') {
+          window.loadQueueEvents();
+        } else if (typeof window.loadPublishQueue === 'function') {
+          window.loadPublishQueue();
+        }
+      }
     });
   });
 }
@@ -141,3 +150,186 @@ function initEventListeners() {
     });
   }
 }
+
+// ------------------- License Guard & Activation Lock Screen -------------------
+async function initLicenseGuard() {
+  if (!window.api || !window.api.licenseGetStatus) return;
+
+  const modalLicense = document.getElementById('modalLicenseLock');
+  const hwidInput = document.getElementById('licDisplayHwid');
+  const btnCopyHwid = document.getElementById('btnCopyHwid');
+  const keyInput = document.getElementById('licInputKey');
+  const btnSubmit = document.getElementById('btnSubmitLicense');
+  const statusMsg = document.getElementById('licStatusMsg');
+  const cancelWrap = document.getElementById('licCancelWrap');
+  const btnCancel = document.getElementById('btnCancelLicenseModal');
+
+  if (!modalLicense) return;
+
+  let currentHwid = '';
+  // Mở app khi chưa kích hoạt → main chặn IPC nên các tab khởi tạo với dữ liệu rỗng; kích hoạt xong phải nạp lại trang
+  let startedLocked = false;
+  try {
+    currentHwid = await window.api.licenseGetHWID();
+    if (hwidInput) hwidInput.value = currentHwid;
+  } catch (_) {}
+
+  async function checkLicenseStatus(initial = false) {
+    try {
+      const status = await window.api.licenseGetStatus();
+      if (status && status.activated) {
+        modalLicense.style.display = 'none';
+        if (cancelWrap) cancelWrap.style.display = 'block';
+        if (window.loadLicenseSettingsStudio) {
+          window.loadLicenseSettingsStudio();
+        }
+        return true;
+      } else {
+        startedLocked = true;
+        modalLicense.style.display = 'flex';
+        modalLicense.style.opacity = '1';
+        if (cancelWrap) cancelWrap.style.display = 'none';
+
+        if (statusMsg) {
+          statusMsg.style.display = 'block';
+          if (status && status.message && status.message.includes('hết hạn')) {
+            statusMsg.style.background = 'rgba(239, 68, 68, 0.15)';
+            statusMsg.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+            statusMsg.style.color = '#fca5a5';
+            statusMsg.innerHTML = `⚠️ <strong>Hết hạn:</strong> ${escHtml(status.message)}<br>Vui lòng liên hệ Admin Boss Kudo để gia hạn bản quyền.`;
+          } else {
+            statusMsg.style.background = 'rgba(14, 165, 233, 0.1)';
+            statusMsg.style.border = '1px solid rgba(14, 165, 233, 0.25)';
+            statusMsg.style.color = '#7dd3fc';
+            statusMsg.innerHTML = `💡 Hãy bấm <strong>Sao Chép</strong> mã máy HWID ở trên và gửi cho Admin Boss Kudo để nhận Key kích hoạt.`;
+          }
+        }
+        return false;
+      }
+    } catch (err) {
+      console.error('License check error:', err);
+      modalLicense.style.display = 'flex';
+      return false;
+    }
+  }
+
+  // Bind Copy HWID
+  if (btnCopyHwid) {
+    btnCopyHwid.onclick = () => {
+      const hwid = hwidInput ? hwidInput.value : currentHwid;
+      if (hwid) {
+        navigator.clipboard.writeText(hwid);
+        const oldHtml = btnCopyHwid.innerHTML;
+        btnCopyHwid.innerHTML = '✅ Đã Chép!';
+        btnCopyHwid.style.color = '#10b981';
+        btnCopyHwid.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        setTimeout(() => {
+          btnCopyHwid.innerHTML = oldHtml;
+          btnCopyHwid.style.color = '#38bdf8';
+          btnCopyHwid.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        }, 2000);
+      }
+    };
+  }
+
+  // Bind Submit Key
+  if (btnSubmit) {
+    btnSubmit.onclick = async () => {
+      const key = (keyInput ? keyInput.value : '').trim().toUpperCase();
+      if (!key) {
+        if (statusMsg) {
+          statusMsg.style.display = 'block';
+          statusMsg.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusMsg.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+          statusMsg.style.color = '#fca5a5';
+          statusMsg.innerHTML = '⚠️ Vui lòng nhập hoặc dán Mã kích hoạt (Key) vào ô trên!';
+        }
+        if (keyInput) keyInput.focus();
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span>⏳ Đang kiểm tra mã bản quyền...</span>';
+
+      try {
+        const res = await window.api.licenseActivate(key);
+        if (res && res.success) {
+          if (statusMsg) {
+            statusMsg.style.display = 'block';
+            statusMsg.style.background = 'rgba(16, 185, 129, 0.15)';
+            statusMsg.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+            statusMsg.style.color = '#6ee7b7';
+            statusMsg.innerHTML = `🎉 <strong>${escHtml(res.message || 'Kích hoạt bản quyền thành công!')}</strong><br>Đang mở khóa toàn bộ tính năng Studio...`;
+          }
+
+          btnSubmit.innerHTML = '<span>✅ Kích Hoạt Thành Công!</span>';
+          btnSubmit.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+
+          if (window.loadLicenseSettingsStudio) {
+            await window.loadLicenseSettingsStudio();
+          }
+
+          if (startedLocked) {
+            setTimeout(() => location.reload(), 1200);
+            return;
+          }
+
+          setTimeout(() => {
+            modalLicense.style.transition = 'opacity 0.4s ease';
+            modalLicense.style.opacity = '0';
+            setTimeout(() => {
+              modalLicense.style.display = 'none';
+              modalLicense.style.opacity = '1';
+              btnSubmit.disabled = false;
+              btnSubmit.innerHTML = '<span>⚡ Kích Hoạt Bản Quyền Ngay</span>';
+              btnSubmit.style.background = 'linear-gradient(135deg, #0284c7, #db2777)';
+            }, 400);
+          }, 1200);
+
+        } else {
+          if (statusMsg) {
+            statusMsg.style.display = 'block';
+            statusMsg.style.background = 'rgba(239, 68, 68, 0.15)';
+            statusMsg.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+            statusMsg.style.color = '#fca5a5';
+            statusMsg.innerHTML = `❌ <strong>Không thể kích hoạt:</strong> ${escHtml(res.message || 'Mã kích hoạt không đúng!')}`;
+          }
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '<span>⚡ Kích Hoạt Bản Quyền Ngay</span>';
+        }
+      } catch (err) {
+        if (statusMsg) {
+          statusMsg.style.display = 'block';
+          statusMsg.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusMsg.style.color = '#fca5a5';
+          statusMsg.innerHTML = `❌ Lỗi: ${escHtml(err.message)}`;
+        }
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span>⚡ Kích Hoạt Bản Quyền Ngay</span>';
+      }
+    };
+  }
+
+  // Enter to submit
+  if (keyInput) {
+    keyInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (btnSubmit) btnSubmit.click();
+      }
+    });
+  }
+
+  // Cancel / Close if allowed
+  if (btnCancel) {
+    btnCancel.onclick = () => {
+      modalLicense.style.display = 'none';
+    };
+  }
+
+  // Check on startup
+  await checkLicenseStatus(true);
+}
+
+window.initLicenseGuard = initLicenseGuard;
+

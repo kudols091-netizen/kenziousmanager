@@ -1,0 +1,94 @@
+{
+  "manifest_version": 3,
+  "name": "Kenzious Get Cookie",
+  "version": "1.0.0",
+  "description": "Tiện ích mở rộng chuyên nghiệp Kenzious: Get & Import Cookie, Quét UID Facebook, Clone Post, Auto tương tác và trích xuất Token Facebook Ads / Pancake.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Kenzious Get Cookie"
+  },
+  "background": {
+    "service_worker": "background/service_worker.js"
+  },
+  "permissions": [
+    "cookies",
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "clipboardRead",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "*://*.facebook.com/*",
+    "*://*.messenger.com/*",
+    "*://*.chatgpt.com/*",
+    "*://*.openai.com/*",
+    "*://*.gemini.google.com/*",
+    "*://*.x.com/*",
+    "*://*.twitter.com/*",
+    "*://*.grok.com/*",
+    "*://*.tiktok.com/*",
+    "*://*.youtube.com/*",
+    "*://*.instagram.com/*",
+    "*://*.threads.net/*",
+    "https://adsmanager.facebook.com/*",
+    "https://*.pancake.vn/*",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.facebook.com/*",
+        "*://*.messenger.com/*"
+      ],
+      "js": [
+        "utils/xlsx_exporter.js",
+        "content/fb_id_detector.js",
+        "content/clone_post_hook.js",
+        "content/clone_post_modal.js",
+        "content/scan_uid_modal.js",
+        "content/auto_tuong_tac_sidebar.js"
+      ],
+      "css": [
+        "content/modals.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/cookie_helper.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*",
+        "popup/*",
+        "content/modals.css"
+      ],
+      "matches": [
+        "*://*.facebook.com/*",
+        "*://*.messenger.com/*",
+        "<all_urls>"
+      ]
+    }
+  ]
+}

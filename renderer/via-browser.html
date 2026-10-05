@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kenzious Dedicated Via Browser</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/Logo-Icon-Kenzious.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #090813;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Toolbar */
+    .top-toolbar {
+      height: 46px;
+      min-height: 46px;
+      background: linear-gradient(180deg, #161327 0%, #0e0c1a 100%);
+      border-bottom: 1px solid rgba(139, 92, 246, 0.28);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+      user-select: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      z-index: 100;
+    }
+
+    /* Controls (Back, Forward, Reload, Home) */
+    .nav-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .nav-btn:hover {
+      background: rgba(168, 85, 247, 0.2);
+      border-color: rgba(168, 85, 247, 0.5);
+      color: #fff;
+    }
+    .nav-btn:active {
+      transform: scale(0.95);
+    }
+    .nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Omnibox (Address Bar) */
+    .omnibox-container {
+      flex: 1;
+      min-width: 220px;
+      max-width: 480px;
+      height: 32px;
+      background: #090714;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .omnibox-container:focus-within {
+      border-color: #a855f7;
+      box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+    }
+    .omnibox-lock {
+      font-size: 11px;
+      color: #38bdf8;
+      flex-shrink: 0;
+    }
+    .omnibox-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f1f5f9;
+      font-family: monospace;
+      font-size: 12px;
+      min-width: 0;
+    }
+    .omnibox-go {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .omnibox-go:hover {
+      color: #a855f7;
+    }
+
+    /* Quick Action Chips */
+    .quick-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .quick-chips::-webkit-scrollbar { display: none; }
+
+    .chip {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .chip:hover {
+      background: rgba(168, 85, 247, 0.25);
+      border-color: rgba(168, 85, 247, 0.6);
+      color: #fff;
+    }
+    .chip.ip8 {
+      background: rgba(2, 132, 199, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+    .chip.ip8:hover {
+      background: rgba(2, 132, 199, 0.35);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .chip.whoer {
+      background: rgba(124, 58, 237, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+    }
+    .chip.whoer:hover {
+      background: rgba(124, 58, 237, 0.35);
+      border-color: #c084fc;
+      color: #fff;
+    }
+    .chip.fb {
+      background: rgba(244, 63, 94, 0.12);
+      border-color: rgba(244, 63, 94, 0.35);
+      color: #fda4af;
+    }
+    .chip.fb:hover {
+      background: rgba(244, 63, 94, 0.3);
+      border-color: #fb7185;
+      color: #fff;
+    }
+
+    /* Proxy Info Badge */
+    .proxy-badge {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-size: 11px;
+      color: #38bdf8;
+      font-family: monospace;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 6px #4ade80;
+    }
+    .dot.direct {
+      background: #94a3b8;
+      box-shadow: none;
+    }
+
+    /* Main Webview Area */
+    .webview-wrapper {
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 46px);
+      position: relative;
+    }
+    webview {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: flex;
+    }
+
+    /* Loading bar */
+    .loading-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #38bdf8, #a855f7, #f472b6);
+      width: 0%;
+      transition: width 0.25s ease, opacity 0.3s ease;
+      z-index: 1000;
+      opacity: 0;
+    }
+    .loading-bar.active {
+      opacity: 1;
+      width: 75%;
+    }
+    .loading-bar.done {
+      width: 100%;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Toolbar -->
+  <div class="top-toolbar">
+    <button class="nav-btn" id="btn-back" title="Quay lại (Alt + Left)">◀</button>
+    <button class="nav-btn" id="btn-forward" title="Tiến tới (Alt + Right)">▶</button>
+    <button class="nav-btn" id="btn-reload" title="Tải lại trang (F5 / Ctrl + R)">🔄</button>
+    
+    <!-- Omnibox (Address Bar) -->
+    <div class="omnibox-container">
+      <span class="omnibox-lock" id="icon-lock">🔒</span>
+      <input type="text" class="omnibox-input" id="omnibox" placeholder="Nhập địa chỉ web (vd: ip8.com, whoer.net)..." spellcheck="false" />
+      <button class="omnibox-go" id="btn-go" title="Đi tới">➔</button>
+    </div>
+
+    <!-- Quick Tool Chips -->
+    <div class="quick-chips">
+      <button class="chip ip8" id="chip-ip8" title="Kiểm tra IP & Độ sạch Proxy trên IP8.com">⚡ Check IP (ip8.com)</button>
+      <button class="chip whoer" id="chip-whoer" title="Kiểm tra chi tiết ẩn danh trên Whoer.net">🌐 Whoer.net</button>
+      <button class="chip fb" id="chip-fb" title="Về trang chủ Facebook">🏠 Facebook</button>
+      <button class="chip" id="chip-biz" title="Mở Meta Business Suite">🏢 Business Suite</button>
+      <button class="chip" id="chip-pages" title="Quản lý các Fanpage trực thuộc">📑 Quản Lý Page</button>
+    </div>
+
+    <!-- Proxy Status Badge -->
+    <div class="proxy-badge" id="proxy-badge">
+      <span class="dot" id="proxy-dot"></span>
+      <span id="proxy-text">Direct IP</span>
+    </div>
+  </div>
+
+  <!-- Webview Container -->
+  <div class="webview-wrapper">
+    <div class="loading-bar" id="loading-bar"></div>
+    <div id="webview-host" style="width:100%;height:100%"></div>
+  </div>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get('uid') || 'temp_' + Date.now();
+      const name = params.get('name') || '';
+      const proxy = params.get('proxy') || '';
+      const targetUrl = params.get('url') || 'https://www.facebook.com/';
+
+      // 1. Cập nhật Tiêu đề trang
+      document.title = `[Via ${uid}] ${name ? name + ' — ' : ''}Antidetect Browser`;
+
+      // 2. Cập nhật Badge Proxy
+      const proxyDot = document.getElementById('proxy-dot');
+      const proxyText = document.getElementById('proxy-text');
+      if (proxy && proxy.trim()) {
+        proxyDot.classList.remove('direct');
+        let cleanPx = proxy.replace(/^(https?|socks[45]):\/\//i, '');
+        if (cleanPx.includes('@')) cleanPx = cleanPx.split('@')[1];
+        const parts = cleanPx.split(':');
+        const shortHostPort = parts.length >= 2 ? (parts[0] + ':' + parts[1]) : cleanPx;
+        const proto = (/^socks[45]/i.test(proxy) ? 'SOCKS' : 'HTTP');
+        proxyText.textContent = `${proto}: ${shortHostPort}`;
+        proxyText.title = `Proxy đầy đủ: ${proxy}`;
+      } else {
+        proxyDot.classList.add('direct');
+        proxyText.textContent = 'Mạng Trực Tiếp (Direct)';
+        proxyText.title = 'Chưa gán proxy cho Via này';
+      }
+
+      // 3. Tạo thẻ <webview> động với partition riêng biệt của Via
+      const host = document.getElementById('webview-host');
+      const wv = document.createElement('webview');
+      wv.id = 'via-view';
+      wv.setAttribute('partition', `persist:fb_via_${uid}`);
+      wv.setAttribute('src', targetUrl);
+      wv.setAttribute('allowpopups', 'on');
+      wv.setAttribute('useragent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36');
+      wv.style.cssText = 'width:100%;height:100%;border:none;';
+      host.appendChild(wv);
+
+      // DOM elements
+      const btnBack = document.getElementById('btn-back');
+      const btnForward = document.getElementById('btn-forward');
+      const btnReload = document.getElementById('btn-reload');
+      const omnibox = document.getElementById('omnibox');
+      const btnGo = document.getElementById('btn-go');
+      const loadingBar = document.getElementById('loading-bar');
+
+      const chipIp8 = document.getElementById('chip-ip8');
+      const chipWhoer = document.getElementById('chip-whoer');
+      const chipFb = document.getElementById('chip-fb');
+      const chipBiz = document.getElementById('chip-biz');
+      const chipPages = document.getElementById('chip-pages');
+
+      function navigateTo(url) {
+        if (!url) return;
+        let u = String(url).trim();
+        if (!/^https?:\/\//i.test(u)) {
+          u = 'https://' + u;
+        }
+        wv.loadURL(u);
+      }
+
+      btnGo.onclick = () => navigateTo(omnibox.value);
+      omnibox.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') navigateTo(omnibox.value);
+      });
+      omnibox.addEventListener('focus', () => {
+        omnibox.select();
+      });
+
+      chipIp8.onclick = () => navigateTo('https://ip8.com/');
+      chipWhoer.onclick = () => navigateTo('https://whoer.net/');
+      chipFb.onclick = () => navigateTo('https://www.facebook.com/');
+      chipBiz.onclick = () => navigateTo('https://business.facebook.com/latest/home');
+      chipPages.onclick = () => navigateTo('https://www.facebook.com/pages/?category=your_pages');
+
+      btnBack.onclick = () => { if (wv.canGoBack()) wv.goBack(); };
+      btnForward.onclick = () => { if (wv.canGoForward()) wv.goForward(); };
+      btnReload.onclick = () => wv.reload();
+
+      wv.addEventListener('did-start-loading', () => {
+        loadingBar.classList.remove('done');
+        loadingBar.classList.add('active');
+        btnReload.textContent = '⏳';
+      });
+
+      wv.addEventListener('did-stop-loading', () => {
+        loadingBar.classList.remove('active');
+        loadingBar.classList.add('done');
+        btnReload.textContent = '🔄';
+        try {
+          const currentUrl = wv.getURL();
+          if (currentUrl && currentUrl !== 'about:blank') {
+            omnibox.value = currentUrl;
+          }
+        } catch (_) {}
+      });
+
+      wv.addEventListener('did-navigate', (e) => {
+        if (e.url) omnibox.value = e.url;
+      });
+
+      wv.addEventListener('did-navigate-in-page', (e) => {
+        if (e.url) omnibox.value = e.url;
+      });
+
+      wv.addEventListener('new-window', (e) => {
+        if (e.url) {
+          wv.loadURL(e.url);
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+          e.preventDefault();
+          omnibox.focus();
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') {
+          e.preventDefault();
+          wv.reload();
+        } else if (e.key === 'F5') {
+          e.preventDefault();
+          wv.reload();
+        } else if (e.altKey && e.key === 'ArrowLeft') {
+          if (wv.canGoBack()) wv.goBack();
+        } else if (e.altKey && e.key === 'ArrowRight') {
+          if (wv.canGoForward()) wv.goForward();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

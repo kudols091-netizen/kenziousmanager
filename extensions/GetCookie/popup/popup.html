@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kenzious Get Cookie</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand-row">
+        <img src="brand-mascot.png" alt="Kenzious Logo" class="brand-logo">
+        <div class="brand-text">
+          <div class="brand-title">
+            KENZIOUS
+            <span class="brand-badge">V3 PRO</span>
+          </div>
+          <div class="brand-subtitle">Cookie & Facebook Automation Suite</div>
+        </div>
+      </div>
+      <div class="status-indicator" id="networkStatus" title="Trạng thái kết nối">
+        <span class="dot"></span>
+        <span class="status-label">Online</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="cookie-tab">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 13v.01"></path></svg>
+        Cookie
+      </button>
+      <button class="nav-tab" data-tab="fb-tab">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+        Facebook
+      </button>
+      <button class="nav-tab" data-tab="tokens-tab">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        Tokens
+      </button>
+      <button class="nav-tab" data-tab="auto-tab">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        Nuôi Nick
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="tab-content">
+      <!-- 1. COOKIE TAB -->
+      <section id="cookie-tab" class="tab-pane active">
+        <div class="current-site-card">
+          <div class="site-icon-wrapper" id="siteIconWrapper">
+            <span id="siteIconText">🌐</span>
+          </div>
+          <div class="site-info">
+            <div class="site-domain" id="currentDomain">Đang kiểm tra...</div>
+            <div class="site-extra" id="siteExtraInfo">Cookie count: --</div>
+          </div>
+          <button class="icon-btn-refresh" id="btnRefreshTab" title="Làm mới thông tin">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          </button>
+        </div>
+
+        <div class="format-selector-row">
+          <label class="section-label">Định dạng Cookie:</label>
+          <div class="pill-group">
+            <button class="pill active" data-format="header">cURL String</button>
+            <button class="pill" data-format="json">JSON</button>
+            <button class="pill" data-format="netscape">Netscape</button>
+            <button class="pill" data-format="base64">Base64</button>
+          </div>
+        </div>
+
+        <div class="cookie-preview-wrapper">
+          <textarea id="cookieOutput" readonly placeholder="Nhấn 'Copy Cookie' hoặc chọn định dạng để xem..."></textarea>
+          <div class="copy-float-btn" id="btnCopyInline" title="Sao chép nhanh">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </div>
+        </div>
+
+        <div class="action-grid-two">
+          <button class="btn btn-primary" id="btnCopyCookie">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy Cookie
+          </button>
+          <button class="btn btn-secondary" id="btnDownloadCookie">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Tải File
+          </button>
+        </div>
+
+        <div class="action-single">
+          <button class="btn btn-gradient-violet" id="btnOpenImport">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Import Cookie Mới (Vào Tab Này)
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. FACEBOOK TOOLS TAB -->
+      <section id="fb-tab" class="tab-pane">
+        <div class="card-feature">
+          <div class="card-feature-header">
+            <div class="card-feature-title">
+              <span class="icon-accent">🆔</span> Lấy UID Tab Hiện Tại
+            </div>
+            <button class="btn btn-sm btn-violet" id="btnGetTabUid">Bóc tách UID</button>
+          </div>
+          <div class="uid-result-box" id="tabUidResult">
+            <span class="placeholder-text">Chưa quét. Hãy mở 1 trang Facebook bất kỳ rồi nhấn nút.</span>
+          </div>
+        </div>
+
+        <div class="card-feature">
+          <div class="card-feature-header">
+            <div class="card-feature-title">
+              <span class="icon-accent">📋</span> Convert Hàng Loạt Link sang UID
+            </div>
+          </div>
+          <textarea id="bulkLinksInput" class="multi-input" placeholder="Dán danh sách link Facebook vào đây (mỗi link 1 dòng)...&#10;https://www.facebook.com/username&#10;https://www.facebook.com/groups/12345"></textarea>
+          <div class="bulk-actions">
+            <button class="btn btn-sm btn-violet" id="btnConvertBulk">Chuyển sang UID</button>
+            <button class="btn btn-sm btn-secondary" id="btnClearBulk">Xóa</button>
+            <button class="btn btn-sm btn-primary" id="btnCopyBulkResult" disabled>Copy All UID</button>
+          </div>
+          <div id="bulkResultArea" class="bulk-result-container hidden">
+            <div class="bulk-result-header">Kết quả phân giải (<span id="bulkCount">0</span> UID):</div>
+            <textarea id="bulkResultOutput" readonly class="multi-input result-highlight"></textarea>
+          </div>
+        </div>
+
+        <div class="action-grid-two">
+          <button class="btn btn-gradient-violet" id="btnTriggerScanUidModal">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Quét UID Trên Trang
+          </button>
+          <button class="btn btn-gradient-pink" id="btnTriggerCloneModal">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            Clone Post Bài Này
+          </button>
+        </div>
+      </section>
+
+      <!-- 3. TOKENS TAB -->
+      <section id="tokens-tab" class="tab-pane">
+        <div class="token-card">
+          <div class="token-header">
+            <div class="token-title-row">
+              <span class="token-badge badge-ads">EAAB</span>
+              <span class="token-name">Facebook Ads Manager Token</span>
+            </div>
+            <button class="btn btn-sm btn-violet" id="btnGetAdsToken">Lấy Token</button>
+          </div>
+          <div class="token-desc">Trích xuất token EAAB quyền hạn cao từ tài khoản Ads Manager đang đăng nhập.</div>
+          <div class="token-input-group">
+            <input type="text" id="adsTokenOutput" readonly placeholder="Nhấn 'Lấy Token' để trích xuất...">
+            <button class="btn-copy-token" id="btnCopyAdsToken" title="Copy Token">Copy</button>
+          </div>
+        </div>
+
+        <div class="token-card">
+          <div class="token-header">
+            <div class="token-title-row">
+              <span class="token-badge badge-pancake">PANCAKE</span>
+              <span class="token-name">Pancake.vn Session Token</span>
+            </div>
+            <button class="btn btn-sm btn-violet" id="btnGetPancakeToken">Lấy Token</button>
+          </div>
+          <div class="token-desc">Trích xuất token làm việc từ phiên Pancake phục vụ kết nối tool & CRM.</div>
+          <div class="token-input-group">
+            <input type="text" id="pancakeTokenOutput" readonly placeholder="Nhấn 'Lấy Token' để trích xuất...">
+            <button class="btn-copy-token" id="btnCopyPancakeToken" title="Copy Token">Copy</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. AUTO NUÔI NICK TAB -->
+      <section id="auto-tab" class="tab-pane">
+        <div class="auto-hero-card">
+          <div class="auto-hero-title">🚀 Bộ Tương Tác Nuôi Nick Facebook</div>
+          <div class="auto-hero-desc">
+            Kích hoạt thanh công cụ nổi ngay trên trang Facebook để tự động hóa: lướt Newsfeed, thả tim cảm xúc, xem Video Reels và tương tác Group với cơ chế Delay ngẫu nhiên chống Checkpoint.
+          </div>
+          <button class="btn btn-gradient-violet btn-block" id="btnLaunchSidebar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+            Bật Thanh Công Cụ Trên Facebook
+          </button>
+        </div>
+
+        <div class="auto-features-list">
+          <div class="feature-item">
+            <span class="check-icon">✓</span> Tự động lướt Bảng tin (Feed) và thả Like/Love/Haha
+          </div>
+          <div class="feature-item">
+            <span class="check-icon">✓</span> Tự động xem Reels và chuyển video ngẫu nhiên 5-15s
+          </div>
+          <div class="feature-item">
+            <span class="check-icon">✓</span> Tự động bình luận theo danh sách kịch bản tùy chọn
+          </div>
+          <div class="feature-item">
+            <span class="check-icon">✓</span> Tự động gắn nút <b>Clone Post</b> trên từng bài viết
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Import Cookie Modal Overlay -->
+    <div id="importModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title">📥 Import Cookie Vào Trình Duyệt</div>
+          <button class="modal-close" id="btnCloseImport">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-hint">Hỗ trợ dán cURL String (`c_user=...; xs=...`), JSON format, hoặc Netscape:</p>
+          <textarea id="importInput" placeholder="Dán chuỗi Cookie tại đây..."></textarea>
+          <div class="modal-options">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chkClearSession" checked>
+              <span>Xóa cookie cũ của trang trước khi nạp</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="chkReloadAfter" checked>
+              <span>Tự động F5 làm mới trang sau khi import</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btnCancelImport">Hủy</button>
+          <button class="btn btn-primary" id="btnConfirmImport">Nạp Cookie Ngay</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+      <span class="toast-icon">✓</span>
+      <span class="toast-message" id="toastMessage">Đã sao chép vào bộ nhớ tạm!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>Kenzious Studio © 2026</span>
+      <span class="sep">•</span>
+      <span class="footer-highlight">Clean-Room Manifest V3</span>
+    </footer>
+  </div>
+
+  <script src="../utils/cookies_parser.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

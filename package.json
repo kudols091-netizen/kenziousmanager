@@ -5,7 +5,76 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron ."
+    "dev": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.kenzious.reelstudio",
+    "productName": "Kenzious Reel Studio v2",
+    "copyright": "Copyright © 2026 Kenzious Team",
+    "asar": true,
+    "asarUnpack": [
+      "src/scripts/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "package.json",
+      "!src/**/*.bak.js",
+      "!**/__pycache__/**"
+    ],
+    "extraResources": [
+      {
+        "from": "bin",
+        "to": "bin"
+      },
+      {
+        "from": "Chromium",
+        "to": "Chromium",
+        "filter": [
+          "!profile_manual/**",
+          "!test_data/**"
+        ]
+      },
+      {
+        "from": "extensions",
+        "to": "extensions"
+      },
+      {
+        "from": "data",
+        "to": "data",
+        "filter": [
+          "presets.json",
+          "prompts.json"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/kenzious.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Kenzious Reel Studio v2",
+      "installerIcon": "assets/kenzious.ico",
+      "uninstallerIcon": "assets/kenzious.ico",
+      "uninstallDisplayName": "Kenzious Reel Studio v2",
+      "artifactName": "Kenzious-Reel-Setup-2.0.0.exe"
+    }
   },
   "keywords": [
     "kenzious",
@@ -22,9 +91,14 @@
   "author": "Kenzious Team",
   "license": "ISC",
   "dependencies": {
-    "puppeteer-core": "^22.12.0"
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.6",
+    "playwright-core": "^1.63.0",
+    "puppeteer-core": "^22.12.0",
+    "socks-proxy-agent": "^8.0.5"
   },
   "devDependencies": {
-    "electron": "^31.3.0"
+    "electron": "^31.3.0",
+    "electron-builder": "^26.15.3"
   }
 }

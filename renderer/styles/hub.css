@@ -1,0 +1,343 @@
+/* ==========================================================
+   HUB & DUAL-WORKSPACE SWITCHER STYLES (Kenzious Reel v2)
+   ========================================================== */
+
+.workspace-view {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  display: flex;
+  background: var(--bg-main, #070a13);
+  transition: opacity 0.22s ease-in-out;
+}
+
+.workspace-view.hidden-ws {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Topbar Segmented Pill Switcher --- */
+.workspace-switcher {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(13, 19, 34, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3px;
+  border-radius: 12px;
+  gap: 4px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.ws-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #94a3b8);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.ws-tab-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
+
+.ws-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ws-tab-btn.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  box-shadow: 0 2px 10px rgba(236, 72, 153, 0.35);
+}
+
+/* --- Welcome Hub Launcher Modal --- */
+.hub-modal-content {
+  max-width: 1120px !important;
+  width: 96% !important;
+  max-height: 92vh !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), transparent 45%),
+              radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.12), transparent 45%),
+              #090d18 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(139, 92, 246, 0.2) !important;
+  padding: 22px 26px !important;
+}
+
+.hub-hero-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.hub-hero-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #38bdf8, #c084fc 50%, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hub-hero-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+.hub-cards-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 16px !important;
+  margin-bottom: 18px !important;
+}
+
+.hub-card {
+  position: relative;
+  background: rgba(18, 25, 43, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background 0.28s ease;
+}
+
+.hub-card.card-reup:hover {
+  transform: translateY(-4px);
+  border-color: rgba(236, 72, 153, 0.6);
+  box-shadow: 0 16px 32px rgba(236, 72, 153, 0.2);
+  background: rgba(26, 33, 56, 0.85);
+}
+.hub-card.card-reup:hover::before {
+  background: linear-gradient(90deg, #ec4899, #8b5cf6);
+}
+
+.hub-card.card-fbreel:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 16px 32px rgba(56, 189, 248, 0.2);
+  background: rgba(26, 33, 56, 0.85);
+}
+.hub-card.card-fbreel:hover::before {
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+}
+
+.hub-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 14px;
+}
+.card-reup .hub-card-icon {
+  background: rgba(236, 72, 153, 0.15);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  color: #f472b6;
+}
+.card-fbreel .hub-card-icon {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+
+.hub-card-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  align-self: flex-start;
+}
+.card-reup .hub-card-badge {
+  background: rgba(236, 72, 153, 0.2);
+  color: #f472b6;
+}
+.card-fbreel .hub-card-badge {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+}
+
+.hub-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.hub-card-desc {
+  font-size: 12.5px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.hub-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.hub-card-features li {
+  font-size: 12px;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hub-card-features li span.check {
+  font-size: 12px;
+  color: #20d990;
+}
+
+.hub-card-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.card-reup .hub-card-btn {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.35);
+}
+.card-reup .hub-card-btn:hover {
+  filter: brightness(1.1);
+}
+
+.card-fbreel .hub-card-btn {
+  background: linear-gradient(135deg, #0284c7, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
+}
+.card-fbreel .hub-card-btn:hover {
+  filter: brightness(1.1);
+}
+
+.hub-footer-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.hub-remember-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.hub-remember-label input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #8b5cf6;
+}
+
+/* --- Facebook Reel Shell Layout within #workspace-fbreel --- */
+#workspace-fbreel {
+  background: #070a13;
+}
+
+.fbreel-shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.kz-side-brand {
+  padding: 10px 8px 16px 8px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 12px;
+}
+
+
+
+
+
+
+
+.hub-card.card-igreel:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 0, 127, 0.6);
+  box-shadow: 0 16px 32px rgba(255, 0, 127, 0.25);
+  background: rgba(26, 33, 56, 0.85);
+}
+.hub-card.card-igreel:hover::before {
+  background: linear-gradient(90deg, #7928ca, #ff007f);
+}
+.card-igreel .hub-card-icon {
+  background: rgba(255, 0, 127, 0.15);
+  border: 1px solid rgba(255, 0, 127, 0.3);
+  color: #ff007f;
+}
+.card-igreel .hub-card-badge {
+  background: rgba(255, 0, 127, 0.2);
+  color: #ff007f;
+}
+.card-igreel .hub-card-btn {
+  background: linear-gradient(135deg, #7928ca 0%, #ff007f 100%);
+  color: #ffffff;
+}
+.card-igreel .hub-card-btn:hover {
+  background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+  box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+}

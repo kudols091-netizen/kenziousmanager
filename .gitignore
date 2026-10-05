@@ -17,6 +17,27 @@ data/*.db
 data/*.sqlite
 data/*.sqlite-wal
 data/*.sqlite-shm
+data/*.dat
+data/*.corrupt-*
+data/*.tmp
+# Profile Chromium (chứa cookie đăng nhập thật), ảnh lỗi đăng bài
+data/profiles/
+data/gemini_browser_profile/
+data/post_errors/
+data/.migrated-from-resources
+
+# Bundled Chromium (398MB, đóng gói qua extraResources)
+Chromium/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# File backup
+*.bak.js
+
+# Script cá nhân mở trình duyệt theo tài khoản
+Mo_IG_*.bat
 
 # External Tool Executables (Fetch via setup script or place manually)
 bin/*.exe
