@@ -689,9 +689,20 @@ class ChannelManager {
   }
 
   // 3b. Mở "Via" (clone) bằng Chromium THẬT thay vì webview Electron — antidetect đúng nghĩa.
-  async openViaBrowser({ uid, cookie = '', proxy = '', name = '', targetUrl = 'https://www.facebook.com/' }) {
+  async openViaBrowser({ uid, cookie = '', pass = '', secret = '', proxy = '', name = '', targetUrl = 'https://www.facebook.com/' }) {
     const execPath = this.getExecutablePath();
     if (!execPath) throw new Error('Không tìm thấy Chromium!');
+
+    // Cookie đủ để đăng nhập phải có c_user + xs. Nếu thiếu mà có UID+Pass → login FB4A lấy cookie mới.
+    let loginCookie = String(cookie || '').trim();
+    let freshCookie = '', freshToken = '';
+    const hasSession = /(?:^|;\s*)c_user=/.test(loginCookie) && /(?:^|;\s*)xs=/.test(loginCookie);
+    if (!hasSession && uid && pass) {
+      try {
+        const res = await require('./fbreel-bridge').fb4aLogin({ uid, password: pass, secret });
+        if (res && res.cookie) { loginCookie = res.cookie; freshCookie = res.cookie; freshToken = res.token || ''; }
+      } catch (_) { /* login lỗi → vẫn mở trình duyệt với cookie cũ (nếu có) */ }
+    }
 
     const viaKey = 'via_' + String(uid || 'temp_' + Date.now()).trim();
     const existing = this.activeBrowsers.get(viaKey);
@@ -725,8 +736,8 @@ class ChannelManager {
       args.push(`--load-extension=${exts.join(',')}`);
       args.push(`--disable-extensions-except=${exts.join(',')}`);
     }
-    // Lần đầu: mở about:blank để bơm cookie trước khi vào Facebook; lần sau: vào thẳng
-    args.push(firstLaunch && cookie ? 'about:blank' : targetUrl);
+    // Có cookie để bơm → mở about:blank, bơm TRƯỚC rồi mới vào Facebook; không có → vào thẳng
+    args.push(loginCookie ? 'about:blank' : targetUrl);
 
     const child = require('child_process').spawn(execPath, args, { detached: true, stdio: 'ignore' });
     child.unref();
@@ -740,9 +751,9 @@ class ChannelManager {
     this.activeBrowsers.set(viaKey, browser);
     browser.on('disconnected', () => this.activeBrowsers.delete(viaKey));
 
-    // Lần đầu: bơm cookie của clone rồi điều hướng tới Facebook (lần sau giữ phiên trong profile, không clobber)
-    if (firstLaunch && cookie && String(cookie).trim()) {
-      const cookies = String(cookie).split(';').map(p => {
+    // Bơm cookie (cũ hoặc vừa login mới) rồi điều hướng tới Facebook — làm MỖI lần mở để luôn đăng nhập đúng clone
+    if (loginCookie) {
+      const cookies = loginCookie.split(';').map(p => {
         const i = p.indexOf('=');
         if (i === -1) return null;
         const nameC = p.slice(0, i).trim(), valC = p.slice(i + 1).trim();
@@ -756,7 +767,8 @@ class ChannelManager {
       } catch (_) {}
     }
 
-    return { success: true, message: `Đã mở Via ${name || uid} bằng Chromium` };
+    // freshCookie/freshToken: renderer lưu lại vào clone để lần sau dùng cookie mới
+    return { success: true, freshCookie, freshToken, message: `Đã mở Via ${name || uid} bằng Chromium` };
   }
 
   // 4. Kiểm tra tính sống còn và làm mới Token EAAB, Tên, Avatar (Silent Live Check)

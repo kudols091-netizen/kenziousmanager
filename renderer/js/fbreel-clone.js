@@ -444,6 +444,8 @@
       window.EB.openViaBrowser({
         uid: c.uid,
         cookie: c.cookie,
+        pass: c.pass,
+        secret: c.twofa,
         proxy: c.proxy,
         name: c.viaName || c.uid
       });

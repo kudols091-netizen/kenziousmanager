@@ -4926,6 +4926,8 @@
         await window.EB.openViaBrowser({
           uid: c.uid,
           cookie: c.cookie,
+          pass: c.pass,
+          secret: c.twofa,
           proxy: c.proxy,
           name: (c.uidName || c.uid) + ' · Page ' + pageId,
           targetUrl: pageUrl
@@ -5307,6 +5309,8 @@
             await window.EB.openViaBrowser({
               uid: c.uid,
               cookie: c.cookie,
+              pass: c.pass,
+              secret: c.twofa,
               proxy: pxStr,
               name: c.uidName || c.viaName || c.uid
             });
@@ -5387,6 +5391,8 @@
         await window.EB.openViaBrowser({
           uid: c.uid,
           cookie: c.cookie,
+          pass: c.pass,
+          secret: c.twofa,
           proxy: c.proxy,
           name: c.uidName || c.uid
         });
