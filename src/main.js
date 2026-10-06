@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, ipcMain, dialog, shell, session } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
 
 // Chỉ chạy 1 phiên app: mở lần 2 thì đưa cửa sổ đang chạy lên trước. Hai phiên song song sẽ ghi đè
 // accounts/publisher_data của nhau và cùng đăng một hàng đợi. Phải kiểm tra TRƯỚC khi nạp các module dữ liệu
@@ -178,14 +178,6 @@ app.on('web-contents-created', (_event, contents) => {
   });
 });
 
-// Proxy có user/pass của cửa sổ Via: yêu cầu xác thực đến từ <webview> guest, nên phải bắt ở cấp app
-app.on('login', (event, webContents, details, authInfo, callback) => {
-  if (!authInfo || !authInfo.isProxy || !webContents) return;
-  const creds = viaProxyAuth.get(webContents.session);
-  if (!creds) return;
-  event.preventDefault();
-  callback(creds.user, creds.pass);
-});
 
 // IPC Handler Helpers
 // Gửi tới MỌI cửa sổ giao diện (cửa sổ chính + cửa sổ workspace mở thêm), trừ cửa sổ Via:
@@ -574,8 +566,6 @@ ipcMain.handle('eb:uploadReelChunk', async (e, args) => {
 });
 
 // ------------------- Dedicated Via Browser Management -------------------
-const viaBrowserWindows = new Map(); // uid -> BrowserWindow
-const viaProxyAuth = new WeakMap();    // Session của Via -> { user, pass } cho proxy có xác thực
 
 
 // Kiểm tra proxy thật (HTTP CONNECT / SOCKS4 / SOCKS5, có user/pass) — dùng chung proxy-checker
@@ -589,110 +579,12 @@ ipcMain.handle('eb:testProxy', async (e, args) => {
 });
 
 ipcMain.handle('eb:openViaBrowser', async (e, args) => {
-  const { uid, cookie = '', proxy = '', name = '', targetUrl = 'https://www.facebook.com/' } = (args || {});
-  const cleanUid = String(uid || 'temp_' + Date.now()).trim();
-
-  // 1. Nếu cửa sổ của Via này đã mở thì focus và mang lên trước
-  if (viaBrowserWindows.has(cleanUid)) {
-    const existing = viaBrowserWindows.get(cleanUid);
-    if (!existing.isDestroyed()) {
-      existing.show();
-      existing.focus();
-      return { success: true, focused: true };
-    }
+  // Mở Via bằng Chromium THẬT (antidetect), không còn dùng webview Electron
+  try {
+    return await channelManager.openViaBrowser(args || {});
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-
-  // 2. Tạo Session Partition riêng biệt cho từng Via
-  const partitionName = `persist:fb_via_${cleanUid}`;
-  const viaSession = session.fromPartition(partitionName);
-
-  // Cấu hình Desktop User-Agent tiêu chuẩn
-  viaSession.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36');
-
-  // 3. Cấu hình Proxy thông minh (HTTP / HTTPS / SOCKS5 / SOCKS4 / User-Pass)
-  let proxyDisplay = '';
-  viaProxyAuth.delete(viaSession);
-  if (proxy && String(proxy).trim()) {
-    // Proxy lỗi định dạng / không hỗ trợ → báo lỗi, KHÔNG mở bằng IP máy (lộ IP thật của Via)
-    const pxObj = proxyNet.parseProxy(proxy);
-    if (!pxObj) return { success: false, error: 'Proxy của Via không đúng định dạng — chưa mở trình duyệt để tránh lộ IP thật.' };
-    if (proxyNet.hasSocksAuth(pxObj)) return { success: false, error: proxyNet.SOCKS_AUTH_UNSUPPORTED };
-    proxyDisplay = proxyNet.formatProxy(pxObj, { withAuth: false }); // không kèm user/pass
-    await viaSession.setProxy({ proxyRules: proxyDisplay });
-    if (pxObj.username) viaProxyAuth.set(viaSession, { user: pxObj.username, pass: pxObj.password });
-  } else {
-    // Partition dùng lại: xoá proxy cũ nếu Via đã bỏ proxy
-    await viaSession.setProxy({ mode: 'direct' });
-  }
-
-  // 4. Inject Cookies vào Session Partition
-  if (cookie && String(cookie).trim()) {
-    const pairs = String(cookie).split(';');
-    for (const pair of pairs) {
-      const eqIdx = pair.indexOf('=');
-      if (eqIdx !== -1) {
-        const cName = pair.slice(0, eqIdx).trim();
-        const cVal = pair.slice(eqIdx + 1).trim();
-        if (cName && cVal) {
-          try {
-            await viaSession.cookies.set({
-              url: 'https://www.facebook.com',
-              domain: '.facebook.com',
-              name: cName,
-              value: cVal,
-              path: '/',
-              secure: true,
-              sameSite: 'no_restriction'
-            });
-          } catch (_) {
-            try {
-              await viaSession.cookies.set({
-                url: 'https://www.facebook.com',
-                name: cName,
-                value: cVal,
-                path: '/'
-              });
-            } catch (__) {}
-          }
-        }
-      }
-    }
-  }
-
-  // 5. Mở BrowserWindow giao diện Antidetect Browser chuyên dụng với Top Toolbar & Omnibox
-  const win = new BrowserWindow({
-    width: 1240,
-    height: 860,
-    minWidth: 850,
-    minHeight: 600,
-    title: `[Via ${cleanUid}] ${name ? name + ' — ' : ''}Dedicated Browser`,
-    icon: path.join(__dirname, '..', 'assets', 'Logo-Icon-Kenzious.svg'),
-    autoHideMenuBar: true,
-    backgroundColor: '#090813',
-    webPreferences: {
-      // via-browser.html chỉ thao tác DOM + <webview>, không cần Node
-      webviewTag: true,
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      devTools: ALLOW_DEVTOOLS
-    }
-  });
-
-  viaBrowserWindows.set(cleanUid, win);
-  win.on('closed', () => viaBrowserWindows.delete(cleanUid));
-
-  // Tải file via-browser.html với đầy đủ thanh điều hướng, check IP8, whoer và Omnibox
-  await win.loadFile(path.join(__dirname, '..', 'renderer', 'via-browser.html'), {
-    query: {
-      uid: cleanUid,
-      name: name || '',
-      proxy: proxyDisplay,
-      url: targetUrl || 'https://www.facebook.com/'
-    }
-  });
-
-  return { success: true };
 });
 
 // ------------------- Multi-Window / Dual Monitor Management -------------------

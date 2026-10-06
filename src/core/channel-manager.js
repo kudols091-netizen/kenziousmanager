@@ -688,6 +688,77 @@ class ChannelManager {
     return { success: true, message: `Đã mở trình duyệt profile cho ${acc.displayName}` };
   }
 
+  // 3b. Mở "Via" (clone) bằng Chromium THẬT thay vì webview Electron — antidetect đúng nghĩa.
+  async openViaBrowser({ uid, cookie = '', proxy = '', name = '', targetUrl = 'https://www.facebook.com/' }) {
+    const execPath = this.getExecutablePath();
+    if (!execPath) throw new Error('Không tìm thấy Chromium!');
+
+    const viaKey = 'via_' + String(uid || 'temp_' + Date.now()).trim();
+    const existing = this.activeBrowsers.get(viaKey);
+    if (existing) {
+      try { if (existing.isConnected()) return { success: true, focused: true }; } catch (_) {}
+      this.activeBrowsers.delete(viaKey);
+    }
+
+    const profileDir = path.join(paths.getProfilesDir(), viaKey);
+    const firstLaunch = !fs.existsSync(profileDir);
+    if (firstLaunch) fs.mkdirSync(profileDir, { recursive: true });
+    const lockFile = path.join(profileDir, 'lockfile');
+    if (fs.existsSync(lockFile)) { try { fs.unlinkSync(lockFile); } catch (_) {} }
+
+    const port = await this.getFreePort();
+    const args = [
+      `--remote-debugging-port=${port}`,
+      `--user-data-dir=${profileDir}`,
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-blink-features=AutomationControlled',
+      '--start-maximized',
+      '--lang=vi-VN,vi'
+    ];
+
+    // Proxy: prepareChromeProxy tự ném lỗi nếu định dạng sai / SOCKS có mật khẩu → không mở (tránh lộ IP)
+    const chromeProxy = proxyNet.prepareChromeProxy(proxy, profileDir);
+    args.push(...chromeProxy.args);
+    const exts = [chromeProxy.extensionDir].filter(p => p && fs.existsSync(p));
+    if (exts.length) {
+      args.push(`--load-extension=${exts.join(',')}`);
+      args.push(`--disable-extensions-except=${exts.join(',')}`);
+    }
+    // Lần đầu: mở about:blank để bơm cookie trước khi vào Facebook; lần sau: vào thẳng
+    args.push(firstLaunch && cookie ? 'about:blank' : targetUrl);
+
+    const child = require('child_process').spawn(execPath, args, { detached: true, stdio: 'ignore' });
+    child.unref();
+
+    let browser = null;
+    for (let attempt = 0; attempt < 25 && !browser; attempt++) {
+      await new Promise(r => setTimeout(r, 400));
+      try { browser = await puppeteer.connect({ browserURL: `http://127.0.0.1:${port}`, defaultViewport: null }); } catch (_) {}
+    }
+    if (!browser) throw new Error(`Không kết nối được Chromium cho Via qua port ${port}`);
+    this.activeBrowsers.set(viaKey, browser);
+    browser.on('disconnected', () => this.activeBrowsers.delete(viaKey));
+
+    // Lần đầu: bơm cookie của clone rồi điều hướng tới Facebook (lần sau giữ phiên trong profile, không clobber)
+    if (firstLaunch && cookie && String(cookie).trim()) {
+      const cookies = String(cookie).split(';').map(p => {
+        const i = p.indexOf('=');
+        if (i === -1) return null;
+        const nameC = p.slice(0, i).trim(), valC = p.slice(i + 1).trim();
+        return nameC && valC ? { name: nameC, value: valC, domain: '.facebook.com', path: '/', secure: true } : null;
+      }).filter(Boolean);
+      try {
+        const pages = await browser.pages();
+        const page = pages[0] || await browser.newPage();
+        if (cookies.length) await page.setCookie(...cookies);
+        await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
+      } catch (_) {}
+    }
+
+    return { success: true, message: `Đã mở Via ${name || uid} bằng Chromium` };
+  }
+
   // 4. Kiểm tra tính sống còn và làm mới Token EAAB, Tên, Avatar (Silent Live Check)
   async checkAccountStatus(id) {
     const acc = storage.getAccounts().find(a => a.id === id);

@@ -46,6 +46,8 @@ class AiPipeline {
 
   getSystemBrowserPath() {
     const candidates = [
+      // Ưu tiên Chromium đi kèm app (như các module khác), rồi mới tới Chrome/Edge hệ thống
+      require('./paths').resourcePath('Chromium', 'bin', 'chrome.exe'),
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
       'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
