@@ -762,6 +762,8 @@ class ChannelManager {
       try {
         const pages = await browser.pages();
         const page = pages[0] || await browser.newPage();
+        // Xoá cookie cũ còn sót trong profile (tránh màn "chọn tài khoản" của account cũ) rồi mới bơm cookie clone
+        try { const cdp = await page.target().createCDPSession(); await cdp.send('Network.clearBrowserCookies'); } catch (_) {}
         if (cookies.length) await page.setCookie(...cookies);
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
       } catch (_) {}
