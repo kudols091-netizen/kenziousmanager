@@ -149,18 +149,26 @@ class LicenseGuard {
     const sigText = match[3].replace(/-/g, '');
     const sig = base32Decode(sigText);
 
+    // Key TRIAL* (vd TRIAL01) không khoá máy — ký với HWID='ANY', chạy trên máy bất kỳ cho tới khi hết hạn.
+    // ponytail: trial key chia sẻ được tự do; chấp nhận vì chỉ sống 1 tháng. Khoá máy thì cần HWID.
+    const isTrial = /^TRIAL/.test(type);
+    const hwidForSig = isTrial ? 'ANY' : currentHwid;
+
     let sigOk = false;
     try {
       // Chỉ nhận dạng mã hoá chuẩn (ký tự cuối base32 có bit đệm — không cho nhiều chuỗi khác nhau cùng hợp lệ)
-      sigOk = !!sig && sig.length === 64 && base32Encode(sig) === sigText && crypto.verify(null, signedMessage(currentHwid, type, expiryStr), this.getPublicKey(), sig);
+      sigOk = !!sig && sig.length === 64 && base32Encode(sig) === sigText && crypto.verify(null, signedMessage(hwidForSig, type, expiryStr), this.getPublicKey(), sig);
     } catch (_) {
       sigOk = false;
     }
     if (!sigOk) {
       return {
         valid: false,
-        reason: 'Mã kích hoạt không khớp với mã máy (HWID) này! Mỗi mã chỉ dùng cho 1 máy tính.'
+        reason: isTrial ? 'Mã dùng thử không hợp lệ!' : 'Mã kích hoạt không khớp với mã máy (HWID) này! Mỗi mã chỉ dùng cho 1 máy tính.'
       };
+    }
+    if (isTrial && (expiryStr === 'PERMANENT' || expiryStr === 'LIFETIME')) {
+      return { valid: false, reason: 'Mã dùng thử phải có hạn sử dụng.' };
     }
 
     // Kiểm tra hạn sử dụng
