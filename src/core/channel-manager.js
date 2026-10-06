@@ -693,16 +693,8 @@ class ChannelManager {
     const execPath = this.getExecutablePath();
     if (!execPath) throw new Error('Không tìm thấy Chromium!');
 
-    // Cookie đủ để đăng nhập phải có c_user + xs. Nếu thiếu mà có UID+Pass → login FB4A lấy cookie mới.
-    let loginCookie = String(cookie || '').trim();
+    const loginCookie = String(cookie || '').trim();
     let freshCookie = '', freshToken = '';
-    const hasSession = /(?:^|;\s*)c_user=/.test(loginCookie) && /(?:^|;\s*)xs=/.test(loginCookie);
-    if (!hasSession && uid && pass) {
-      try {
-        const res = await require('./fbreel-bridge').fb4aLogin({ uid, password: pass, secret });
-        if (res && res.cookie) { loginCookie = res.cookie; freshCookie = res.cookie; freshToken = res.token || ''; }
-      } catch (_) { /* login lỗi → vẫn mở trình duyệt với cookie cũ (nếu có) */ }
-    }
 
     const viaKey = 'via_' + String(uid || 'temp_' + Date.now()).trim();
     const existing = this.activeBrowsers.get(viaKey);
@@ -736,8 +728,8 @@ class ChannelManager {
       args.push(`--load-extension=${exts.join(',')}`);
       args.push(`--disable-extensions-except=${exts.join(',')}`);
     }
-    // Có cookie để bơm → mở about:blank, bơm TRƯỚC rồi mới vào Facebook; không có → vào thẳng
-    args.push(loginCookie ? 'about:blank' : targetUrl);
+    // Luôn mở about:blank; code bên dưới tự bơm cookie rồi mới điều hướng (tránh tải FB trước khi bơm)
+    args.push('about:blank');
 
     const child = require('child_process').spawn(execPath, args, { detached: true, stdio: 'ignore' });
     child.unref();
@@ -751,26 +743,54 @@ class ChannelManager {
     this.activeBrowsers.set(viaKey, browser);
     browser.on('disconnected', () => this.activeBrowsers.delete(viaKey));
 
-    // Bơm cookie (cũ hoặc vừa login mới) rồi điều hướng tới Facebook — làm MỖI lần mở để luôn đăng nhập đúng clone
-    if (loginCookie) {
-      const cookies = loginCookie.split(';').map(p => {
-        const i = p.indexOf('=');
-        if (i === -1) return null;
-        const nameC = p.slice(0, i).trim(), valC = p.slice(i + 1).trim();
-        return nameC && valC ? { name: nameC, value: valC, domain: '.facebook.com', path: '/', secure: true } : null;
-      }).filter(Boolean);
+    const page = (await browser.pages())[0] || await browser.newPage();
+    let cdp = null; try { cdp = await page.target().createCDPSession(); } catch (_) {}
+
+    const parseCookies = (str) => str.split(';').map(p => {
+      const i = p.indexOf('=');
+      if (i === -1) return null;
+      const n = p.slice(0, i).trim(), v = p.slice(i + 1).trim();
+      return n && v ? { name: n, value: v, domain: '.facebook.com', path: '/', secure: true } : null;
+    }).filter(Boolean);
+
+    // Bơm cookie (xoá cookie cũ trước để tránh account lẫn) rồi vào Facebook; trả về true nếu VẪN chưa đăng nhập
+    const injectAndCheck = async (cookieStr) => {
       try {
-        const pages = await browser.pages();
-        const page = pages[0] || await browser.newPage();
-        // Xoá cookie cũ còn sót trong profile (tránh màn "chọn tài khoản" của account cũ) rồi mới bơm cookie clone
-        try { const cdp = await page.target().createCDPSession(); await cdp.send('Network.clearBrowserCookies'); } catch (_) {}
-        if (cookies.length) await page.setCookie(...cookies);
-        await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
+        if (cdp) await cdp.send('Network.clearBrowserCookies');
+        const cks = parseCookies(cookieStr);
+        if (cks.length) await page.setCookie(...cks);
       } catch (_) {}
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
+      await new Promise(r => setTimeout(r, 2500)); // chờ FB render (màn "Tiếp tục" / login dựng bằng JS)
+      return await page.evaluate(() => {
+        if (/^\/(login|checkpoint|recover|two_step|device-based)/i.test(location.pathname)) return true;
+        if (document.querySelector('input[name="pass"], input[name="email"], input#email, button[name="login"], #loginbutton')) return true;
+        const t = (document.body && document.body.innerText) || '';
+        // Màn "một chạm": Tiếp tục as X + Dùng trang cá nhân khác / Tạo tài khoản mới
+        return /Dùng trang cá nhân khác|Use another account|Log in to another account|Log into another account/i.test(t);
+      }).catch(() => false);
+    };
+
+    let loggedOut = true;
+    if (loginCookie) {
+      loggedOut = await injectAndCheck(loginCookie);
+    } else {
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
+    }
+
+    // Cookie chết/không đủ để đăng nhập → tự login UID|PASS|2FA lấy cookie mới rồi bơm lại
+    if (loggedOut && uid && pass) {
+      try {
+        const res = await require('./fbreel-bridge').fb4aLogin({ uid, password: pass, secret });
+        if (res && res.cookie) {
+          freshCookie = res.cookie; freshToken = res.token || '';
+          loggedOut = await injectAndCheck(res.cookie);
+        }
+      } catch (_) { /* login lỗi → để nguyên trang đăng nhập cho người dùng tự xử lý */ }
     }
 
     // freshCookie/freshToken: renderer lưu lại vào clone để lần sau dùng cookie mới
-    return { success: true, freshCookie, freshToken, message: `Đã mở Via ${name || uid} bằng Chromium` };
+    return { success: true, loggedIn: !loggedOut, freshCookie, freshToken, message: `Đã mở Via ${name || uid} bằng Chromium` };
   }
 
   // 4. Kiểm tra tính sống còn và làm mới Token EAAB, Tên, Avatar (Silent Live Check)
