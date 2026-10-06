@@ -14,7 +14,7 @@ if (Test-Path $unpackedData) {
 }
 
 Write-Host "Dang nen thu muc dist\win-unpacked thanh $dest bang tar..." -ForegroundColor Cyan
-& tar.exe -a -c -f $dest -C "dist\win-unpacked" *
+& tar.exe -a -c -f $dest -C "dist\win-unpacked" .
 if (Test-Path $dest) {
     $sizeMb = [math]::Round((Get-Item $dest).Length / 1MB, 2)
     Write-Host "-> Da nen thanh cong! File: $dest ($sizeMb MB)" -ForegroundColor Green
