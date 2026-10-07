@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "server-admin/assets/style.css"
+        ],
+        "createdAt": "2026-10-07T18:43:01.154Z",
+        "reason": "brand wordmark Kenzious: khop logo gradient cua app (cyan->violet->magenta), chu dich thuong hieu khong phai heading/metric"
+      }
+    ]
+  }
+}
