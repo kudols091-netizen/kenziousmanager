@@ -4107,8 +4107,10 @@
       + '  <div style="flex:1"><label style="' + lab + '">Delay tối thiểu (s)</label><input id="reel-pg-dmin" type="number" min="0" step="1" style="' + inp + '"></div>'
       + '  <div style="flex:1"><label style="' + lab + '">Delay tối đa (s)</label><input id="reel-pg-dmax" type="number" min="0" step="1" style="' + inp + '"></div></div>'
       + '  <label style="' + lab + '">Mô tả / Bio <span style="font-weight:400;opacity:.6">(tuỳ chọn)</span></label><textarea id="reel-pg-bio" style="' + inp + ';height:52px;margin-bottom:12px"></textarea>'
-      + '  <label style="' + lab + '">Ảnh đại diện Page <span style="font-weight:400;opacity:.6">(tuỳ chọn · đặt luôn cho mọi page vừa tạo · JPG/PNG)</span></label>'
-      + '  <input id="reel-pg-avatar" type="file" accept="image/*" style="' + inp + ';margin-bottom:12px;padding:6px">'
+      + '  <label style="' + lab + '">Ảnh đại diện Page <span style="font-weight:400;opacity:.6">(tuỳ chọn · JPG/PNG)</span></label>'
+      + '  <input id="reel-pg-avatar" type="file" accept="image/*" style="' + inp + ';margin-bottom:6px;padding:6px">'
+      + '  <label style="' + lab + '">…hoặc cả THƯ MỤC avatar <span style="font-weight:400;opacity:.6">(mỗi page 1 ảnh khác nhau · theo thứ tự tên file · hết thì quay vòng)</span></label>'
+      + '  <input id="reel-pg-avdir" type="file" accept="image/*" webkitdirectory multiple style="' + inp + ';margin-bottom:12px;padding:6px">'
       + '</div>'
       + '<div id="reel-pg-linkbox" style="display:none;margin-bottom:12px"><label style="' + lab + '">Link mời BM <span style="font-weight:400;opacity:.6">(mỗi dòng 1 link · ghép lần lượt: clone 1 ← link 1, clone 2 ← link 2…)</span></label><textarea id="reel-pg-links" style="' + inp + ';height:120px" placeholder="https://business.facebook.com/...token=...&#10;…"></textarea></div>'
       + '<div id="reel-pg-tokbox" style="display:none">'
@@ -4181,25 +4183,31 @@
       else if (!names.length) { plog('⚠️ Chưa nhập tên Page.'); return; }
       var cat = (q('reel-pg-cat').value || '').trim() || '200600219953504';
       var bio = (q('reel-pg-bio').value || '').trim();
-      var avFile = (q('reel-pg-avatar').files || [])[0] || null; // avatar đặt cho mọi page vừa tạo (tuỳ chọn)
+      // Avatar: ưu tiên cả thư mục (mỗi page 1 ảnh khác, sắp theo tên); không có thì dùng 1 ảnh lẻ cho mọi page
+      var avFiles = Array.from(q('reel-pg-avdir').files || []).filter(function (f) { return /^image\//.test(f.type) || /\.(jpe?g|png|webp|gif|bmp)$/i.test(f.name); });
+      avFiles.sort(function (a, b) { return (a.name || '').localeCompare(b.name || '', undefined, { numeric: true }); });
+      if (!avFiles.length) { var one = (q('reel-pg-avatar').files || [])[0]; if (one) avFiles = [one]; }
       var bmIds = (q('reel-pg-bms').value || '').split(/[\s,]+/).map(function (s) { return s.trim(); }).filter(function (s) { return /^\d{5,}$/.test(s); });
       var dmin = Math.max(0, parseInt(q('reel-pg-dmin').value, 10) || 0), dmax = Math.max(0, parseInt(q('reel-pg-dmax').value, 10) || 0);
       if (dmax < dmin) { var _t = dmin; dmin = dmax; dmax = _t; }
       q('reel-pg-dmin').value = dmin; q('reel-pg-dmax').value = dmax;
       try { localStorage.setItem('kz_reel_pgdelay', JSON.stringify({ min: dmin, max: dmax })); } catch (e) {}
       PGRUN = true; PGSTOP = false; q('reel-pg-run').disabled = true; q('reel-pg-stop').disabled = false;
-      try { await runPgTool(mode, names, cat, bio, bmIds, plog, q('reel-pg-stat'), links, { min: dmin, max: dmax }, avFile); }
+      try { await runPgTool(mode, names, cat, bio, bmIds, plog, q('reel-pg-stat'), links, { min: dmin, max: dmax }, avFiles); }
       catch (e) { plog('✗ Lỗi: ' + ((e && e.message) || e)); }
       finally { PGRUN = false; q('reel-pg-run').disabled = false; q('reel-pg-stop').disabled = true; }
     };
     q('reel-pg-stop').onclick = function () { PGSTOP = true; plog('⏹ Đang dừng…'); };
   }
-  async function runPgTool(mode, names, cat, bio, bmIds, plog, statEl, links, delay, avatarFile) {
+  async function runPgTool(mode, names, cat, bio, bmIds, plog, statEl, links, delay, avatarFiles) {
     delay = delay || { min: 0, max: 0 };
-    // Đặt avatar cho page vừa tạo (page mới → clone là admin nên set được); lỗi avatar không tính là lỗi tạo page
+    avatarFiles = avatarFiles || [];
+    // Mỗi page lấy 1 avatar khác nhau theo thứ tự; hết danh sách thì quay vòng. Lỗi avatar không tính là lỗi tạo page.
+    var avIdx = 0;
     async function applyAvatar(c, pid, label) {
-      if (!avatarFile || !pid) return;
-      try { var ra = await setPageAvatar(c, pid, avatarFile); plog(ra.ok ? ('    🖼️ avatar OK') : ('    ⚠️ avatar lỗi: ' + ra.err)); }
+      if (!avatarFiles.length || !pid) return;
+      var file = avatarFiles[avIdx++ % avatarFiles.length];
+      try { var ra = await setPageAvatar(c, pid, file); plog(ra.ok ? ('    🖼️ avatar OK (' + file.name + ')') : ('    ⚠️ avatar lỗi: ' + ra.err)); }
       catch (e) { plog('    ⚠️ avatar lỗi: ' + ((e && e.message) || e)); }
     }
     // Chờ ngẫu nhiên [min,max] giây giữa 2 lần tạo Page — chia nhỏ để bấm Dừng có hiệu lực ngay.
