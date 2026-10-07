@@ -254,12 +254,16 @@
   }
 
   async function fetchViaName(c) {
-    var tok = bestTok(c); if (!tok || c.viaName) return;
-    try {
-      var r = await ebFetch('https://graph.facebook.com/v19.0/me?fields=name&access_token=' + encodeURIComponent(tok), '', {}, c.proxy);
-      var j = r && r.json; if (!j && r && r.text) { try { j = JSON.parse(r.text); } catch (e) {} }
-      if (j && j.name) c.viaName = j.name;
-    } catch (e) {}
+    if (c.viaName) return;
+    // EAAAAU (Katana) thường KHÔNG list được /me qua Graph v19.0 → thử EAAB/EAAG trước, EAAAAU sau cùng.
+    var toks = [c.eaab, c.eaag, c.eaaaau].filter(Boolean);
+    for (var i = 0; i < toks.length; i++) {
+      try {
+        var r = await ebFetch('https://graph.facebook.com/v19.0/me?fields=name&access_token=' + encodeURIComponent(toks[i]), '', {}, c.proxy);
+        var j = r && r.json; if (!j && r && r.text) { try { j = JSON.parse(r.text); } catch (e) {} }
+        if (j && j.name) { c.viaName = j.name; return; }
+      } catch (e) {}
+    }
   }
   // Lấy token: ưu tiên EAAAAU (login FB4A bằng pass+2fa — mạnh + ổn nhất), rồi EAAB (scrape),
   // cuối cùng EAAAAU qua OAuth-tab (cho clone chỉ có cookie, không mật khẩu). Điền vào đúng cột.
