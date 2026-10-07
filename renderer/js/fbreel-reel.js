@@ -2409,9 +2409,18 @@
     if (!(window.EB && window.EB.cloneUploadPhoto)) throw new Error('Extension chưa có cloneUploadPhoto — cập nhật Extension + F5.');
     var r = await window.EB.cloneUploadPhoto(base + q.toString(), ck, b64, file.name || 'photo.jpg', file.type || 'image/jpeg');
     var txt = ((r && r.text) || '').replace(/^for\s*\(;;\);\s*/, '');
-    var fbid = null; try { var j = JSON.parse(txt); fbid = j && j.payload && (j.payload.fbid || j.payload.photo_id); } catch (e) {}
+    var jj = null; try { jj = JSON.parse(txt); } catch (e) {}
+    var fbid = jj && jj.payload && (jj.payload.fbid || jj.payload.photo_id);
     if (!fbid) { var m = txt.match(/"fbid"\s*:\s*"?(\d+)"?/); fbid = m ? m[1] : null; }
-    if (!fbid) { if (/1357032|Something Went Wrong/i.test(txt)) throw new Error('FB chặn đổi ảnh page kiểu mới (anti-bot 1357032)'); throw new Error('không lấy được fbid: ' + (txt.slice(0, 120) || '(rỗng)')); }
+    if (!fbid) {
+      // FB trả lỗi có cấu trúc {error, errorSummary, errorDescription} → hiện đủ để biết FB chặn vì gì
+      var code = jj && jj.error, sum = (jj && (jj.errorSummary || (jj.errorDescription))) || '';
+      sum = String(sum).replace(/<[^>]+>/g, '').trim(); // bỏ thẻ html trong errorDescription
+      if (code === 1357032 || code === 1357054 || /1357032|1357054|Something Went Wrong/i.test(txt)) {
+        throw new Error('FB chặn đổi ảnh page (mã ' + (code || '1357xxx') + ')' + (sum ? ' — ' + sum.slice(0, 180) : '') + '. Thường do clone bị hạn chế/chưa đủ quyền admin, hoặc đổi ảnh quá nhiều. Thử clone khác hoặc đổi tay.');
+      }
+      throw new Error('không lấy được fbid' + (code ? ' (mã ' + code + ')' : '') + ': ' + ((sum || txt).slice(0, 180) || '(rỗng)'));
+    }
     return String(fbid);
   }
   // POST 1 mutation graphql đóng vai page (dùng cho avatar/cover set).
