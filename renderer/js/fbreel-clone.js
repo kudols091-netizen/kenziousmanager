@@ -266,14 +266,18 @@
         dbg.push(toks[i][0] + '→' + (j && j.error ? ('err ' + (j.error.code || '') + ' ' + (j.error.message || '')) : (((r && r.text) || '(rỗng)').slice(0, 50))));
       } catch (e) { dbg.push(toks[i][0] + '→EX ' + ((e && e.message) || e)); }
     }
-    // 2) Fallback: lấy tên từ HTML trang /me/ bằng cookie (chạy kể cả khi token không list được /me).
+    // 2) Fallback: cookie còn sống nhưng token chết → lấy tên qua mbasic (HTML tối giản, tên ở <title>);
+    //    trang www feed quá nặng và không chứa tên theo pattern cũ.
     if (c.cookie) {
-      try {
-        var r2 = await ebFetch('https://www.facebook.com/me/', c.cookie, {}, c.proxy);
-        var nm = extractName((r2 && r2.text) || '');
-        if (nm) { c.viaName = nm; return; }
-        dbg.push('cookie→url=' + (((r2 && r2.url) || '?').replace(/^https?:\/\//, '').slice(0, 40)) + ' len=' + (((r2 && r2.text) || '').length));
-      } catch (e) { dbg.push('cookie→EX ' + ((e && e.message) || e)); }
+      var pages = ['https://mbasic.facebook.com/profile.php', 'https://mbasic.facebook.com/me', 'https://www.facebook.com/me/'];
+      for (var p = 0; p < pages.length; p++) {
+        try {
+          var r2 = await ebFetch(pages[p], c.cookie, {}, c.proxy);
+          var nm = extractName((r2 && r2.text) || '');
+          if (nm) { c.viaName = nm; return; }
+          dbg.push('cookie(' + pages[p].replace(/^https?:\/\/|facebook\.com.*/g, '') + ')→url=' + (((r2 && r2.url) || '?').replace(/^https?:\/\//, '').slice(0, 30)) + ' len=' + (((r2 && r2.text) || '').length));
+        } catch (e) { dbg.push('cookie→EX ' + ((e && e.message) || e)); }
+      }
     }
     var dbgMsg = 'Tên Via UID ' + (c.uid || '?') + ' không lấy được: ' + dbg.join('  |  ');
     try { console.log('[ViaName]', dbgMsg); } catch (e) {}
