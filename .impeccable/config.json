@@ -11,6 +11,24 @@
         ],
         "createdAt": "2026-10-07T18:43:01.154Z",
         "reason": "brand wordmark Kenzious: khop logo gradient cua app (cyan->violet->magenta), chu dich thuong hieu khong phai heading/metric"
+      },
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "files": [
+          "server-admin/assets/style.css"
+        ],
+        "createdAt": "2026-10-07T18:51:48.681Z",
+        "reason": "user confirmed: user yeu cau ro giu font Roboto"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "server-admin/assets/style.css"
+        ],
+        "createdAt": "2026-10-07T18:51:48.859Z",
+        "reason": "user confirmed: port nguyen thiet ke admin PinkAgc theo yeu cau user (thanh accent the stat)"
       }
     ]
   }
