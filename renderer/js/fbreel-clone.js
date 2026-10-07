@@ -255,23 +255,29 @@
 
   async function fetchViaName(c) {
     if (c.viaName) return;
+    var dbg = [];
     // 1) Qua token: EAAAAU (Katana) thường KHÔNG list được /me qua Graph v19.0 → thử EAAB/EAAG trước.
-    var toks = [c.eaab, c.eaag, c.eaaaau].filter(Boolean);
+    var toks = [['EAAB', c.eaab], ['EAAG', c.eaag], ['EAAAAU', c.eaaaau]].filter(function (x) { return x[1]; });
     for (var i = 0; i < toks.length; i++) {
       try {
-        var r = await ebFetch('https://graph.facebook.com/v19.0/me?fields=name&access_token=' + encodeURIComponent(toks[i]), '', {}, c.proxy);
+        var r = await ebFetch('https://graph.facebook.com/v19.0/me?fields=name&access_token=' + encodeURIComponent(toks[i][1]), '', {}, c.proxy);
         var j = r && r.json; if (!j && r && r.text) { try { j = JSON.parse(r.text); } catch (e) {} }
         if (j && j.name) { c.viaName = j.name; return; }
-      } catch (e) {}
+        dbg.push(toks[i][0] + '→' + (j && j.error ? ('err ' + (j.error.code || '') + ' ' + (j.error.message || '')) : (((r && r.text) || '(rỗng)').slice(0, 50))));
+      } catch (e) { dbg.push(toks[i][0] + '→EX ' + ((e && e.message) || e)); }
     }
     // 2) Fallback: lấy tên từ HTML trang /me/ bằng cookie (chạy kể cả khi token không list được /me).
     if (c.cookie) {
       try {
         var r2 = await ebFetch('https://www.facebook.com/me/', c.cookie, {}, c.proxy);
         var nm = extractName((r2 && r2.text) || '');
-        if (nm) c.viaName = nm;
-      } catch (e) {}
+        if (nm) { c.viaName = nm; return; }
+        dbg.push('cookie→url=' + (((r2 && r2.url) || '?').replace(/^https?:\/\//, '').slice(0, 40)) + ' len=' + (((r2 && r2.text) || '').length));
+      } catch (e) { dbg.push('cookie→EX ' + ((e && e.message) || e)); }
     }
+    var dbgMsg = 'Tên Via UID ' + (c.uid || '?') + ' không lấy được: ' + dbg.join('  |  ');
+    try { console.log('[ViaName]', dbgMsg); } catch (e) {}
+    try { log(dbgMsg); } catch (e) {}
   }
   // Lấy token: ưu tiên EAAAAU (login FB4A bằng pass+2fa — mạnh + ổn nhất), rồi EAAB (scrape),
   // cuối cùng EAAAAU qua OAuth-tab (cho clone chỉ có cookie, không mật khẩu). Điền vào đúng cột.
