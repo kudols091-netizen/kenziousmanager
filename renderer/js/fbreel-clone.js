@@ -285,8 +285,33 @@
   }
   // Lấy token: ưu tiên EAAAAU (login FB4A bằng pass+2fa — mạnh + ổn nhất), rồi EAAB (scrape),
   // cuối cùng EAAAAU qua OAuth-tab (cho clone chỉ có cookie, không mật khẩu). Điền vào đúng cột.
+  // Kiểm token còn sống qua /me. 'dead' = lỗi OAuth (190… đổi mật khẩu/reset session), 'alive' = ok,
+  // 'unknown' = nghẽn mạng/rate-limit (KHÔNG xoá token kẻo mất oan).
+  async function tokenAlive(tok, proxy) {
+    try {
+      var r = await ebFetch('https://graph.facebook.com/v19.0/me?fields=id&access_token=' + encodeURIComponent(tok), '', {}, proxy);
+      var j = r && r.json; if (!j && r && r.text) { try { j = JSON.parse(r.text); } catch (e) {} }
+      if (j && j.id) return 'alive';
+      if (j && j.error) {
+        var code = j.error.code;
+        if ([190, 102, 458, 459, 460, 463, 464, 467, 492].indexOf(code) >= 0) return 'dead';
+      }
+      return 'unknown';
+    } catch (e) { return 'unknown'; }
+  }
+
   async function getTokenOne(c) {
     var loginErr = '';
+    // Token cũ chết (err 190: đổi mật khẩu / FB reset session) → xoá hết token để lấy lại từ đầu.
+    // Cả phiên chết cùng lúc nên chỉ cần kiểm token mạnh nhất.
+    var oldBest = bestTok(c);
+    if (oldBest) {
+      var alive = await tokenAlive(oldBest, c.proxy);
+      if (alive === 'dead') {
+        c.eaaaau = ''; c.eaab = ''; c.eaag = ''; c.viaName = '';
+        if (!(c.uid && c.pass)) loginErr = 'token cũ chết (190: đổi mật khẩu/reset session), không có pass để login lại';
+      }
+    }
     // 0) EAAAAU Katana: login FB4A bằng uid+pass(+2fa) -> token EAAAAU + cookie phiên mới (đầy đủ quyền).
     if (!c.eaaaau && c.uid && c.pass && window.EB && window.EB.fbLogin) {
       try {
@@ -294,7 +319,7 @@
         if (lr && lr.token) { setTok(c, lr.token); if (lr.cookie) c.cookie = lr.cookie; if (lr.uid) c.uid = String(lr.uid); }
         else loginErr = (lr && lr.error) || 'không trả token';
       } catch (e) { loginErr = (e && e.message) || String(e); }
-    } else if (!c.eaaaau && c.uid && !c.pass) {
+    } else if (!c.eaaaau && c.uid && !c.pass && !loginErr) {
       loginErr = 'thiếu mật khẩu (EAAAAU cần Uid+Pass+2FA)';
     }
     if (!c.cookie && !bestTok(c)) { c.note = 'thiếu cookie/mật khẩu'; return false; }
