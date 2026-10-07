@@ -53,6 +53,12 @@
         ]
       }
     ],
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://UPDATE-URL-CUA-BAN/kenzious-reel/"
+      }
+    ],
     "win": {
       "target": [
         {
@@ -73,7 +79,7 @@
       "installerIcon": "assets/kenzious.ico",
       "uninstallerIcon": "assets/kenzious.ico",
       "uninstallDisplayName": "Kenzious Reel Studio v2",
-      "artifactName": "Kenzious-Reel-Setup-2.0.0.exe"
+      "artifactName": "Kenzious-Reel-Setup-${version}.exe"
     }
   },
   "keywords": [
@@ -91,6 +97,7 @@
   "author": "Kenzious Team",
   "license": "ISC",
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
     "playwright-core": "^1.63.0",

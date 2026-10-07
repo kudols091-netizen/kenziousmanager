@@ -117,6 +117,8 @@ app.whenReady().then(() => {
     console.error('[Secure] Lỗi mã hoá dữ liệu cũ:', err.message);
   }
   createWindow();
+  // Tự kiểm tra & tải bản cập nhật (chỉ chạy ở bản đóng gói)
+  try { require('./core/updater').initAutoUpdate(mainWindow); } catch (err) { console.error('[Update]', err.message); }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
