@@ -264,12 +264,16 @@
   // Lấy token: ưu tiên EAAAAU (login FB4A bằng pass+2fa — mạnh + ổn nhất), rồi EAAB (scrape),
   // cuối cùng EAAAAU qua OAuth-tab (cho clone chỉ có cookie, không mật khẩu). Điền vào đúng cột.
   async function getTokenOne(c) {
+    var loginErr = '';
     // 0) EAAAAU Katana: login FB4A bằng uid+pass(+2fa) -> token EAAAAU + cookie phiên mới (đầy đủ quyền).
     if (!c.eaaaau && c.uid && c.pass && window.EB && window.EB.fbLogin) {
       try {
         var lr = await window.EB.fbLogin(c.uid, c.pass, c.twofa || '');
         if (lr && lr.token) { setTok(c, lr.token); if (lr.cookie) c.cookie = lr.cookie; if (lr.uid) c.uid = String(lr.uid); }
-      } catch (e) { c.note = 'login FB4A: ' + ((e && e.message) || e); }
+        else loginErr = (lr && lr.error) || 'không trả token';
+      } catch (e) { loginErr = (e && e.message) || String(e); }
+    } else if (!c.eaaaau && c.uid && !c.pass) {
+      loginErr = 'thiếu mật khẩu (EAAAAU cần Uid+Pass+2FA)';
     }
     if (!c.cookie && !bestTok(c)) { c.note = 'thiếu cookie/mật khẩu'; return false; }
     // 1) EAAB từ adsmanager/business (dùng cookie — kể cả cookie mới do login trả về)
@@ -292,6 +296,7 @@
     await fetchViaName(c);
     var ok = !!bestTok(c);
     c.note = ok ? ('token ' + [c.eaaaau && 'EAAAAU', c.eaab && 'EAAB', c.eaag && 'EAAG'].filter(Boolean).join('+')) : 'không lấy được token (cookie hỏng / cần mật khẩu)';
+    if (!c.eaaaau && loginErr) c.note += ' · EAAAAU fail: ' + loginErr;
     return ok;
   }
 
