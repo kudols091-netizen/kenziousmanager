@@ -240,6 +240,8 @@ ipcMain.handle('storage:saveSettings', (e, settings) => {
   validateBinarySettings(settings);
   return storage.saveSettings(settings);
 });
+ipcMain.handle('app:getVersion', () => app.getVersion());
+ipcMain.handle('app:checkForUpdate', () => require('./core/updater').checkForUpdateManual());
 ipcMain.handle('storage:getPresets', () => storage.getPresets());
 ipcMain.handle('storage:savePresets', (e, presets) => storage.savePresets(presets));
 ipcMain.handle('storage:getAccounts', () => sanitizeAccounts(storage.getAccounts()));

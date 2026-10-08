@@ -950,7 +950,19 @@
 
             <!-- ================= SUBTAB 1: CẤU HÌNH CHUNG ================= -->
             <div id="subtab-general" class="settings-subtab-pane active" style="flex-direction: column; gap: 16px;">
-              
+
+              <!-- CẬP NHẬT PHẦN MỀM -->
+              <div class="control-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                  <div>
+                    <div style="font-weight: 600; font-size: 13.5px;">Cập nhật phần mềm</div>
+                    <div id="updateVersionText" style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">Phiên bản hiện tại: …</div>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnCheckUpdate">🔄 Kiểm tra cập nhật</button>
+                </div>
+                <div id="updateStatusText" style="font-size: 12.5px; margin-top: 10px; display: none;"></div>
+              </div>
+
               <!-- THƯ MỤC XUẤT -->
               <div class="control-card">
                 <div style="font-weight: 600; font-size: 13.5px; margin-bottom: 8px;">Thư mục xuất</div>

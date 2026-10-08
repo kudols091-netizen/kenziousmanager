@@ -41,6 +41,8 @@ contextBridge.exposeInMainWorld('api', {
   importCookies: (platform, cookies, proxy, name, options) => ipcRenderer.invoke('channel:importCookies', platform, cookies, proxy, name, options),
   interactiveLogin: (platform, proxy, options) => ipcRenderer.invoke('channel:interactiveLogin', platform, proxy, options),
   useIgCookieForDownload: () => ipcRenderer.invoke('account:useIgCookieForDownload'),
+  getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
+  checkForUpdate: () => ipcRenderer.invoke('app:checkForUpdate'),
   checkAccountStatus: (id) => ipcRenderer.invoke('channel:checkStatus', id),
   openBrowser: (accountId) => ipcRenderer.invoke('channel:openBrowser', accountId),
   updateAccountSettings: (accountId, patch) => ipcRenderer.invoke('channel:updateSettings', accountId, patch),

@@ -35,7 +35,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSettingsActions();
   initModalsHandlers();
   initLicenseSettingsStudio();
+  initUpdateCheck();
 });
+
+// Nút "Kiểm tra cập nhật" thủ công + hiện phiên bản hiện tại.
+function initUpdateCheck() {
+  const btn = document.getElementById('btnCheckUpdate');
+  const verEl = document.getElementById('updateVersionText');
+  const statusEl = document.getElementById('updateStatusText');
+  if (!btn) return;
+
+  if (verEl && window.api?.getAppVersion) {
+    window.api.getAppVersion().then(v => { verEl.textContent = 'Phiên bản hiện tại: v' + v; }).catch(() => {});
+  }
+
+  const colorFor = (status) => status === 'available' ? '#22c55e'
+    : status === 'latest' ? '#a1a1aa'
+    : status === 'error' ? '#ef4444' : '#f59e0b';
+
+  btn.addEventListener('click', async () => {
+    if (!window.api?.checkForUpdate) return;
+    btn.disabled = true;
+    const label = btn.textContent;
+    btn.textContent = '⏳ Đang kiểm tra...';
+    if (statusEl) { statusEl.style.display = 'block'; statusEl.style.color = '#a1a1aa'; statusEl.textContent = 'Đang kiểm tra máy chủ...'; }
+    try {
+      const r = await window.api.checkForUpdate();
+      if (statusEl) { statusEl.style.color = colorFor(r.status); statusEl.textContent = r.message || ''; }
+    } catch (e) {
+      if (statusEl) { statusEl.style.color = '#ef4444'; statusEl.textContent = 'Lỗi: ' + (e?.message || e); }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
+}
 
 // 1. Chuyển đổi Subtabs trong Settings Studio (Bulletproof Switching)
 function initSettingsSubtabs() {
