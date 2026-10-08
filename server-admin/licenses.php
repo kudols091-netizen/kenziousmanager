@@ -108,10 +108,10 @@ require __DIR__ . '/partials/header.php';
                     <td><?= e($r['id']) ?></td>
                     <td class="cell-copy"><span class="mono"><?= e($r['key']) ?></span><button class="btn copy-btn" data-copy="<?= e($r['key']) ?>" title="Copy">⧉</button></td>
                     <?php if ($hasHwid): ?><td>
-                        <form method="post" class="cell-copy" style="gap:4px" onsubmit="return confirm('Lưu HWID này cho key? (để trống = gỡ bind)')">
+                        <form method="post" class="cell-copy" style="gap:4px">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="act" value="sethwid"><input type="hidden" name="id" value="<?= e($r['id']) ?>"><input type="hidden" name="q" value="<?= e($q) ?>">
                             <input class="table-input mono" name="hwid" value="<?= e($r['hwid'] ?? '') ?>" placeholder="KZ-XXXX-XXXX-XXXX-XXXX" style="max-width:220px">
-                            <button class="btn small" type="submit" title="Lưu HWID">💾</button>
+                            <button class="btn small primary" type="submit" title="Lưu HWID" onclick="return confirm('Lưu HWID này cho key #<?= e($r['id']) ?>?\n(để trống = gỡ bind)')">💾 Lưu</button>
                         </form>
                         <?php if (!$bound): ?><span class="sub">chưa bind</span><?php endif; ?>
                     </td><?php endif; ?>
