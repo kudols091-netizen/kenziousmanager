@@ -361,6 +361,26 @@ function syncIgCookieFromAccount(acc) {
   } catch (_) {}
 }
 
+// Lấy cookie (có sessionid) từ nick Instagram ĐÃ KẾT NỐI đổ vào "Cookie Instagram" (tải/quét) — 1 chạm.
+ipcMain.handle('account:useIgCookieForDownload', () => {
+  try {
+    const accs = storage.getAccounts() || [];
+    const igs = accs.filter(a => a && a.platform === 'instagram' && Array.isArray(a.cookies) && a.cookies.length);
+    for (const a of igs) {
+      const ck = a.cookies
+        .filter(c => !c.domain || String(c.domain).includes('instagram.com'))
+        .map(c => `${c.name}=${c.value}`).join('; ');
+      if (/(^|;\s*)sessionid=/.test(ck)) {
+        storage.saveSettings({ igCookie: ck });
+        return { success: true, account: a.displayName || a.username || a.id };
+      }
+    }
+    return { success: false, error: igs.length
+      ? 'Nick Instagram đã thêm không có sessionid — hãy "Đăng nhập trực quan" lại nick đó (đăng nhập đầy đủ tới feed).'
+      : 'Chưa có nick Instagram nào trong Quản lý kênh. Thêm 1 nick IG (đăng nhập) trước.' };
+  } catch (e) { return { success: false, error: e.message }; }
+});
+
 ipcMain.handle('channel:importCookies', async (e, platform, cookies, proxy, name, options) => {
   const acc = await channelManager.importCookies(platform, cookies, proxy, name, options);
   syncIgCookieFromAccount(acc);
