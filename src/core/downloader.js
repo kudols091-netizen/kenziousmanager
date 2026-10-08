@@ -102,8 +102,9 @@ class Downloader {
   hasCookieSetting(url) {
     const u = String(url || '').toLowerCase();
     const s = storage.getSettings();
-    if (u.includes('instagram.com')) return !!(s.igCookie && s.igCookie.trim());
-    if (u.includes('facebook.com')) return !!(s.fbCookie && s.fbCookie.trim());
+    // IG bắt buộc cookie phiên đăng nhập THẬT: phải có sessionid (datr/csrftoken/mid có cả khi chưa login)
+    if (u.includes('instagram.com')) return /(^|;|\s)sessionid=[^;]/i.test(s.igCookie || '');
+    if (u.includes('facebook.com')) return /(^|;|\s)c_user=[^;]/i.test(s.fbCookie || '');
     return true; // nền khác không bắt buộc cookie
   }
 
@@ -460,10 +461,16 @@ class Downloader {
             reject(new Error('Failed to parse channel JSON: ' + e.message));
           }
         } else {
-          const needCookie = /instagram\.com/i.test(url) && !this.hasCookieSetting(url)
-            && /unable to extract|login required|rate.?limit|empty media|HTTP Error 40|not available|private/i.test(stderr || '');
-          if (needCookie) {
+          const isIg = /instagram\.com/i.test(url);
+          const igFail = isIg && /unable to extract|login required|rate.?limit|empty media|HTTP Error 40|not available|private|checkpoint/i.test(stderr || '');
+          const igCk = (storage.getSettings().igCookie || '').trim();
+          const hasSession = /(^|;|\s)sessionid=[^;]/i.test(igCk);
+          if (igFail && !igCk) {
             reject(new Error('Instagram yêu cầu đăng nhập để quét kênh. Vào Cài đặt → dán "Cookie Instagram" (từ tài khoản IG đã đăng nhập) rồi quét lại.'));
+          } else if (igFail && !hasSession) {
+            reject(new Error('Cookie Instagram THIẾU "sessionid" (phiên đăng nhập). Cookie hiện tại chỉ có datr/csrftoken/mid — đó là cookie CHƯA đăng nhập. Hãy ĐĂNG NHẬP Instagram đầy đủ rồi lấy lại cookie (phải có sessionid + ds_user_id).'));
+          } else if (igFail) {
+            reject(new Error('Instagram chặn quét kênh này dù đã có cookie đăng nhập — thường do: tài khoản IG bị hạn chế/mới, kênh nguồn riêng tư, hoặc IG chặn IP (thử đổi proxy/nick IG khác, hoặc thử lại sau). stderr: ' + (stderr || '').slice(0, 160)));
           } else {
             reject(new Error('Quét kênh thất bại (code ' + code + '): ' + (stderr || 'Unknown error')));
           }

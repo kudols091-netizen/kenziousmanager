@@ -882,7 +882,11 @@ Naturalness over literalness: chọn câu nói tự nhiên đúng ý thay vì d�
       };
       await window.api.saveSettings(patch);
       playChime('soft');
-      alert('✅ Đã lưu Cookie cấu hình thành công!');
+      if (patch.igCookie && !/(^|;|\s)sessionid=[^;]/i.test(patch.igCookie)) {
+        alert('⚠️ Đã lưu, NHƯNG Cookie Instagram THIẾU "sessionid" (phiên đăng nhập).\nCookie hiện chỉ có datr/csrftoken/mid = chưa đăng nhập → KHÔNG quét/tải IG được.\nHãy đăng nhập IG đầy đủ rồi lấy lại cookie (phải có sessionid).');
+      } else {
+        alert('✅ Đã lưu Cookie cấu hình thành công!');
+      }
     };
   }
 
