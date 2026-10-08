@@ -4207,8 +4207,18 @@
     async function applyAvatar(c, pid, label) {
       if (!avatarFiles.length || !pid) return;
       var file = avatarFiles[avIdx++ % avatarFiles.length];
-      try { var ra = await setPageAvatar(c, pid, file); plog(ra.ok ? ('    🖼️ avatar OK (' + file.name + ')') : ('    ⚠️ avatar lỗi: ' + ra.err)); }
-      catch (e) { plog('    ⚠️ avatar lỗi: ' + ((e && e.message) || e)); }
+      await sleep(3000); // chờ Page mới tạo sẵn sàng hẳn, tránh FB từ chối (1357054)
+      for (var attempt = 1; attempt <= 3 && !PGSTOP; attempt++) {
+        try {
+          var ra = await setPageAvatar(c, pid, file);
+          if (ra && ra.ok) { plog('    🖼️ avatar OK (' + file.name + ')'); return; }
+          if (attempt < 3) { plog('    … avatar thử lại lần ' + attempt + ' (' + (ra && ra.err) + ')'); if (c._delSeed) delete c._delSeed[pid]; await sleep(4000); continue; }
+          plog('    ⚠️ avatar lỗi: ' + (ra && ra.err));
+        } catch (e) {
+          if (attempt < 3) { if (c._delSeed) delete c._delSeed[pid]; await sleep(4000); continue; }
+          plog('    ⚠️ avatar lỗi: ' + ((e && e.message) || e));
+        }
+      }
     }
     // Chờ ngẫu nhiên [min,max] giây giữa 2 lần tạo Page — chia nhỏ để bấm Dừng có hiệu lực ngay.
     async function pgWait() {
