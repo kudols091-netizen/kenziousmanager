@@ -7,6 +7,16 @@ function initAutoUpdate(mainWindow) {
   const { app } = require('electron');
   if (!app.isPackaged) return;
 
+  // Bản PORTABLE (zip) không cài NSIS được → có file marker 'PORTABLE' cạnh exe thì bỏ qua auto-update.
+  try {
+    const path = require('path');
+    const fs = require('fs');
+    if (fs.existsSync(path.join(path.dirname(app.getPath('exe')), 'PORTABLE'))) {
+      console.log('[Update] Bản portable — bỏ qua auto-update.');
+      return;
+    }
+  } catch (_) {}
+
   let autoUpdater;
   try {
     ({ autoUpdater } = require('electron-updater'));

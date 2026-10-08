@@ -13,6 +13,9 @@ if (Test-Path $unpackedData) {
     }
 }
 
+# Danh dau ban portable: app bo qua auto-update khi thay file nay canh exe
+Set-Content -Path "dist\win-unpacked\PORTABLE" -Value "portable" -Encoding ascii
+
 Write-Host "Dang nen thu muc dist\win-unpacked thanh $dest bang tar..." -ForegroundColor Cyan
 & tar.exe -a -c -f $dest -C "dist\win-unpacked" .
 if (Test-Path $dest) {
