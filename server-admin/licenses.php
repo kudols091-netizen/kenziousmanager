@@ -25,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($act === 'reset' && $hasHwid) {
             $pdo->prepare("UPDATE `licenses` SET hwid='' WHERE id=?")->execute([(int)$_POST['id']]);
             flash('success', 'Đã reset máy — key dùng được trên máy mới.');
+        } elseif ($act === 'sethwid' && $hasHwid) {
+            $hwid = strtoupper(trim((string)($_POST['hwid'] ?? '')));
+            $pdo->prepare('UPDATE `licenses` SET hwid=? WHERE id=?')->execute([$hwid, (int)$_POST['id']]);
+            flash('success', $hwid === '' ? 'Đã xoá máy (để trống).' : 'Đã lưu HWID: ' . $hwid);
         } elseif ($act === 'extend' && $hasExpired) {
             $id = (int)$_POST['id']; $days = (int)($_POST['days'] ?? 0);
             if ($days === -1) { $exp = ''; $msg = 'Đã đặt VĨNH VIỄN.'; }
@@ -103,7 +107,14 @@ require __DIR__ . '/partials/header.php';
                     <td class="chk-col"><input type="checkbox" class="rowchk" form="bulkForm" name="ids[]" value="<?= e($r['id']) ?>"></td>
                     <td><?= e($r['id']) ?></td>
                     <td class="cell-copy"><span class="mono"><?= e($r['key']) ?></span><button class="btn copy-btn" data-copy="<?= e($r['key']) ?>" title="Copy">⧉</button></td>
-                    <?php if ($hasHwid): ?><td><?= $bound ? '<span class="mono">' . e($r['hwid']) . '</span>' : '<span class="badge muted">chưa bind</span>' ?></td><?php endif; ?>
+                    <?php if ($hasHwid): ?><td>
+                        <form method="post" class="cell-copy" style="gap:4px" onsubmit="return confirm('Lưu HWID này cho key? (để trống = gỡ bind)')">
+                            <input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="act" value="sethwid"><input type="hidden" name="id" value="<?= e($r['id']) ?>"><input type="hidden" name="q" value="<?= e($q) ?>">
+                            <input class="table-input mono" name="hwid" value="<?= e($r['hwid'] ?? '') ?>" placeholder="KZ-XXXX-XXXX-XXXX-XXXX" style="max-width:220px">
+                            <button class="btn small" type="submit" title="Lưu HWID">💾</button>
+                        </form>
+                        <?php if (!$bound): ?><span class="sub">chưa bind</span><?php endif; ?>
+                    </td><?php endif; ?>
                     <?php if ($hasExpired): ?><td><span class="badge <?= $bc ?>"><?= e(status_label($sk)) ?></span><?php if ($left !== null): ?> <span class="sub"><?= $left < 0 ? 'quá ' . abs($left) . 'n' : 'còn ' . $left . 'n' ?></span><?php endif; ?><div class="sub"><?= e($r['expired'] ?? '') ?></div></td><?php endif; ?>
                     <?php if ($hasNote): ?><td><?= e($r['note'] ?? '') ?></td><?php endif; ?>
                     <?php if ($hasSeen): ?><td class="sub"><?= e($r['last_seen'] ?? '') ?></td><?php endif; ?>
