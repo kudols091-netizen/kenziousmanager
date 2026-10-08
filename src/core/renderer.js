@@ -31,6 +31,22 @@ class Renderer {
     this.activeRenders = new Map();
   }
 
+  // drawtext với font='Name' cần fontconfig — bản ffmpeg bundle báo "Cannot load default config file"
+  // nên dùng fontfile= trỏ thẳng file .ttf (ưu tiên Roboto bundle, fallback font hệ thống Windows).
+  getFontFile() {
+    if (this._fontFile) return this._fontFile;
+    const candidates = [
+      path.join(__dirname, '..', '..', 'assets', 'Roboto-Bold.ttf'),
+      process.resourcesPath ? path.join(process.resourcesPath, 'assets', 'Roboto-Bold.ttf') : null,
+      'C:/Windows/Fonts/arialbd.ttf',
+      'C:/Windows/Fonts/segoeuib.ttf',
+      'C:/Windows/Fonts/arial.ttf'
+    ].filter(Boolean);
+    for (const c of candidates) { try { if (fs.existsSync(c)) { this._fontFile = c; return c; } } catch (_) {} }
+    this._fontFile = 'C:/Windows/Fonts/arial.ttf';
+    return this._fontFile;
+  }
+
   getFfmpegPath() {
     const s = storage.getSettings();
     if (s.ffmpegPath && fs.existsSync(s.ffmpegPath)) return s.ffmpegPath;
@@ -200,7 +216,7 @@ class Renderer {
       const hookFile = this.writeDrawtextFile(opts.titleHookText, tempFiles);
       filters.push(
         `[${currentV}]drawbox=x=0:y=60:w=iw:h=120:color=black@0.75:t=fill,` +
-        `drawtext=textfile=${quoteFilterPath(hookFile)}:expansion=none:font='Roboto':fontsize=42:fontcolor=white:x=(w-tw)/2:y=100:` +
+        `drawtext=textfile=${quoteFilterPath(hookFile)}:expansion=none:fontfile=${quoteFilterPath(this.getFontFile())}:fontsize=42:fontcolor=white:x=(w-tw)/2:y=100:` +
         `shadowcolor=purple@0.8:shadowx=3:shadowy=3[v_hook]`
       );
       currentV = 'v_hook';
@@ -215,7 +231,7 @@ class Renderer {
       else if (opts.watermarkPos === 'bottom-left') pos = 'x=40:y=h-th-50';
 
       filters.push(
-        `[${currentV}]drawtext=textfile=${quoteFilterPath(wmFile)}:expansion=none:font='Roboto':fontsize=28:fontcolor=white@0.85:` +
+        `[${currentV}]drawtext=textfile=${quoteFilterPath(wmFile)}:expansion=none:fontfile=${quoteFilterPath(this.getFontFile())}:fontsize=28:fontcolor=white@0.85:` +
         `${pos}:shadowcolor=black@0.6:shadowx=2:shadowy=2[v_wm]`
       );
       currentV = 'v_wm';

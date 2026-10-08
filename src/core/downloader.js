@@ -25,6 +25,12 @@ class Downloader {
     return 'yt-dlp';
   }
 
+  // Ép yt-dlp xuất stdout UTF-8 (nếu không, tên file tiếng Việt in ra theo code-page Windows
+  // -> parse path bị hỏng (�) -> render "No such file"). yt-dlp là app Python nên nhận các biến này.
+  ytdlpEnv() {
+    return { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
+  }
+
   // Tạo file cookies.txt (Netscape) cho yt-dlp theo nền tảng của URL, lấy cookie user đã dán ở Cài đặt.
   // Instagram/Facebook bắt buộc cookie đăng nhập mới quét/tải được profile. Trả path hoặc null.
   getCookieFileForUrl(url) {
@@ -135,7 +141,7 @@ class Downloader {
       if (ck) args.push('--cookies', ck);
       args.push(url);
 
-      const proc = track(spawn(ytdlp, args, { windowsHide: true }));
+      const proc = track(spawn(ytdlp, args, { windowsHide: true, env: this.ytdlpEnv() }));
       let stdout = '';
       let stderr = '';
 
@@ -259,7 +265,7 @@ class Downloader {
     }
 
     return new Promise((resolve, reject) => {
-      const proc = track(spawn(ytdlp, args, { windowsHide: true }));
+      const proc = track(spawn(ytdlp, args, { windowsHide: true, env: this.ytdlpEnv() }));
       this.activeProcesses.set(taskId, proc);
 
       let downloadedFilePath = null;
@@ -355,7 +361,7 @@ class Downloader {
       if (ck) args.push('--cookies', ck);
       args.push(url);
 
-      const proc = track(spawn(ytdlp, args, { windowsHide: true }));
+      const proc = track(spawn(ytdlp, args, { windowsHide: true, env: this.ytdlpEnv() }));
       let stdout = '';
       let stderr = '';
 
