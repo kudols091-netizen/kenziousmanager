@@ -28,7 +28,16 @@ class Downloader {
   // Ép yt-dlp xuất stdout UTF-8 (nếu không, tên file tiếng Việt in ra theo code-page Windows
   // -> parse path bị hỏng (�) -> render "No such file"). yt-dlp là app Python nên nhận các biến này.
   ytdlpEnv() {
-    return { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
+    const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
+    // yt-dlp mới cần JS runtime (Deno) để giải nsig YouTube. Deno.exe nằm cùng thư mục yt-dlp (bin/)
+    // -> thêm vào PATH để yt-dlp tự phát hiện ("jsc:deno"). Không có vẫn tải được TikTok/định dạng không cần nsig.
+    try {
+      const binDir = path.dirname(this.getYtDlpPath());
+      const cur = env.PATH || env.Path || '';
+      env.PATH = binDir + path.delimiter + cur;
+      if ('Path' in env && env.Path !== env.PATH) delete env.Path;
+    } catch (_) {}
+    return env;
   }
 
   // Lấy đường dẫn file đã tải THẬT từ ổ đĩa (tên Unicode đúng), vì path parse từ stdout yt-dlp
