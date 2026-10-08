@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const { track, killTree } = require('./process-registry');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const storage = require('./storage');
@@ -381,8 +382,60 @@ class Downloader {
     return false;
   }
 
+  // IG profile: yt-dlp (instagram:user) HỎNG kể cả có cookie -> dùng scraper Python (server cổng 5055,
+  // ig-server.js tự bật). Trả cùng shape như scanChannel; url mỗi entry là link /reel/ để TẢI vẫn qua yt-dlp (OK).
+  _scanIgProfile(url, limit) {
+    return new Promise((resolve, reject) => {
+      const igCk = (storage.getSettings().igCookie || '').trim();
+      if (!/(^|;|\s)sessionid=[^;]/i.test(igCk)) {
+        reject(new Error('Cookie Instagram THIẾU "sessionid" (phiên đăng nhập). Vào Cài đặt → bấm "Dùng cookie nick IG đã kết nối" hoặc dán cookie IG có sessionid rồi quét lại.'));
+        return;
+      }
+      const user = url.replace(/[?#].*$/, '').replace(/\/+$/, '').split('/').pop().replace('@', '');
+      const body = JSON.stringify({ url, count: limit, cookie: igCk });
+      const req = http.request({
+        host: '127.0.0.1', port: 5055, path: '/api/scrape-list', method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        timeout: 60000
+      }, (res) => {
+        let data = '';
+        res.on('data', d => { data += d; });
+        res.on('end', () => {
+          let json;
+          try { json = JSON.parse(data); } catch (e) { reject(new Error('Scraper IG trả về dữ liệu lỗi: ' + data.slice(0, 160))); return; }
+          const posts = json.posts || [];
+          if (!posts.length) {
+            reject(new Error(json.error || 'Không quét được bài viết nào từ Instagram @' + user + ' (thử nick IG khác/đổi proxy, hoặc profile riêng tư).'));
+            return;
+          }
+          const entries = posts.map((p, idx) => {
+            const code = p.code || p.id;
+            return {
+              id: code || ('ig_' + Date.now() + '_' + idx),
+              url: p.post_url || (code ? ('https://www.instagram.com/reel/' + code + '/') : url),
+              title: ((p.caption || '').trim().slice(0, 80)) || ('Reel ' + (idx + 1)),
+              duration: p.duration || 0,
+              thumbnail: p.display_url || p.cover_url || '',
+              uploader: user,
+              platform: 'instagram'
+            };
+          });
+          resolve({ isPlaylist: true, title: 'Instagram @' + user, uploader: user, platform: 'instagram', entries });
+        });
+      });
+      req.on('timeout', () => { req.destroy(new Error('Scraper IG quá thời gian chờ (60s). Thử lại hoặc giảm số lượng.')); });
+      req.on('error', (e) => reject(new Error('Không kết nối được scraper IG (cổng 5055). Mở lại app để bật server IG. Chi tiết: ' + e.message)));
+      req.write(body);
+      req.end();
+    });
+  }
+
   // Quet danh sach video tu kenh hoac playlist
   async scanChannel(url, limit = 20) {
+    // IG profile -> dinh tuyen qua scraper Python (yt-dlp instagram:user hong)
+    if (/instagram\.com/i.test(url) && !/\/(reel|p|tv)\//i.test(url)) {
+      return this._scanIgProfile(url, limit);
+    }
     const ytdlp = this.getYtDlpPath();
     return new Promise((resolve, reject) => {
       const args = [
