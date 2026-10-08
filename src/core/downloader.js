@@ -31,6 +31,27 @@ class Downloader {
     return { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
   }
 
+  // Lấy đường dẫn file đã tải THẬT từ ổ đĩa (tên Unicode đúng), vì path parse từ stdout yt-dlp
+  // bị cp1252 làm hỏng. Ưu tiên khớp theo video ID (ASCII), fallback file video mới nhất.
+  resolveRealFile(outputDir, hintPath) {
+    const VIDEO = /\.(mp4|mkv|webm|mov)$/i;
+    try {
+      if (hintPath && !/�/.test(hintPath) && fs.existsSync(hintPath)) return hintPath;
+      let id = '';
+      const m = String(hintPath || '').match(/_([A-Za-z0-9_-]{5,})\.[A-Za-z0-9]+$/);
+      if (m) id = m[1];
+      const files = fs.readdirSync(outputDir)
+        .filter(f => VIDEO.test(f))
+        .map(f => { const p = path.join(outputDir, f); let t = 0; try { t = fs.statSync(p).mtimeMs; } catch (_) {} return { f, p, t }; });
+      if (id) {
+        const byId = files.filter(x => x.f.includes('_' + id + '.') || x.f.includes(id));
+        if (byId.length) return byId.sort((a, b) => b.t - a.t)[0].p;
+      }
+      if (files.length) return files.sort((a, b) => b.t - a.t)[0].p;
+    } catch (_) {}
+    return hintPath;
+  }
+
   // Tạo file cookies.txt (Netscape) cho yt-dlp theo nền tảng của URL, lấy cookie user đã dán ở Cài đặt.
   // Instagram/Facebook bắt buộc cookie đăng nhập mới quét/tải được profile. Trả path hoặc null.
   getCookieFileForUrl(url) {
@@ -319,10 +340,13 @@ class Downloader {
           if (callbacks.onProgress) {
             callbacks.onProgress({ taskId, percent: 100, speed: 'Done', eta: '00:00' });
           }
+          // yt-dlp in tên file ra stdout theo code-page cp1252 (lossy với tiếng Việt) → path parse bị hỏng.
+          // Lấy đường dẫn THẬT từ ổ đĩa: quét outputDir tìm file theo video ID (ASCII, không hỏng).
+          const realPath = this.resolveRealFile(outputDir, downloadedFilePath);
           resolve({
             taskId,
             status: 'completed',
-            filePath: downloadedFilePath,
+            filePath: realPath,
             outputDir
           });
         } else {
