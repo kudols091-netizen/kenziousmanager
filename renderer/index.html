@@ -1579,7 +1579,7 @@ https://www.facebook.com/reel/..."></textarea>
 
   <!-- MODAL: THÊM TÀI KHOẢN (2-STEP PLATFORM PICKER & CREDENTIALS) -->
   <div class="modal-overlay" id="modalAddAccount">
-    <div class="modal-content" style="max-width: 720px;">
+    <div class="modal-content" style="max-width: 860px; width: 94vw;">
       
       <!-- STEP 1: CHỌN NỀN TẢNG (PLATFORM GRID) -->
       <div id="stepSelectPlatform">
@@ -1718,9 +1718,9 @@ https://www.facebook.com/reel/..."></textarea>
           <button class="modal-close" id="btnCloseConfigModal">&times;</button>
         </div>
 
-        <div class="modal-body" style="padding: 20px 24px;">
+        <div class="modal-body" style="padding: 24px 32px;">
           <!-- Selected Platform Highlight Banner -->
-          <div class="platform-selected-banner" id="platformBanner">
+          <div class="platform-selected-banner" id="platformBanner" style="margin-bottom: 18px;">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div class="platform-icon-wrap" id="selectedPlatformIcon" style="width: 36px; height: 36px;"></div>
               <div>
@@ -1744,9 +1744,9 @@ https://www.facebook.com/reel/..."></textarea>
           </div>
 
           <!-- Section 1: Cookie Import -->
-          <div id="sectionImportCookie" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          <div id="sectionImportCookie" style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
             <label class="form-label">Dán Cookie (JSON mảng hoặc Header cURL chuỗi)</label>
-            <textarea class="form-textarea" id="accountModalCookieInput" rows="5" placeholder='[{"name": "c_user", "value": "1000..."}, ...] hoặc c_user=1000...; xs=...'></textarea>
+            <textarea class="form-textarea" id="accountModalCookieInput" rows="7" placeholder='[{"name": "c_user", "value": "1000..."}, ...] hoặc c_user=1000...; xs=...'></textarea>
             <span style="font-size: 11.5px; color: var(--text-muted);">Mẹo: Sử dụng J2Team Cookies hoặc EditThisCookie để xuất định dạng JSON.</span>
           </div>
 
