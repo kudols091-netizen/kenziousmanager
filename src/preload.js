@@ -154,6 +154,9 @@ contextBridge.exposeInMainWorld('EB', {
   openViaBrowser: async (opts) => {
     return await ipcRenderer.invoke('eb:openViaBrowser', opts || {});
   },
+  openCookieBrowser: async (url) => {
+    return await ipcRenderer.invoke('eb:openCookieBrowser', url || '');
+  },
 
   testProxy: async (opts) => {
     return await ipcRenderer.invoke('eb:testProxy', opts || {});

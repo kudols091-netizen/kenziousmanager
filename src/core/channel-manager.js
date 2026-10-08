@@ -39,6 +39,34 @@ class ChannelManager {
     return null;
   }
 
+  // Mở Chromium bundled (có sẵn extension GetCookie) vào 1 URL để user đăng nhập & lấy cookie.
+  // Profile cố định 'cookie_grabber' nên đăng nhập 1 lần dùng lại. Dùng cho lấy Cookie Instagram.
+  openCookieBrowser(url) {
+    const execPath = this.getExecutablePath();
+    if (!execPath || !fs.existsSync(execPath)) return { success: false, error: 'Không tìm thấy Chromium bundled.' };
+    const profileDir = path.join(paths.getProfilesDir(), 'cookie_grabber');
+    try { if (!fs.existsSync(profileDir)) fs.mkdirSync(profileDir, { recursive: true }); } catch (_) {}
+    try { const lf = path.join(profileDir, 'lockfile'); if (fs.existsSync(lf)) fs.unlinkSync(lf); } catch (_) {}
+    const extPath = this.getExtensionPath();
+    const args = [
+      `--user-data-dir=${profileDir}`,
+      '--no-first-run', '--no-default-browser-check',
+      '--disable-blink-features=AutomationControlled', '--start-maximized', '--lang=vi-VN,vi'
+    ];
+    if (extPath && fs.existsSync(extPath)) {
+      args.push(`--load-extension=${extPath}`);
+      args.push(`--disable-extensions-except=${extPath}`);
+    }
+    args.push(url || 'https://www.instagram.com/');
+    try {
+      const child = require('child_process').spawn(execPath, args, { detached: true, stdio: 'ignore' });
+      child.unref();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
   getExecutablePath() {
     // 0. Uu tien Chromium bundled tai project hoac resources
     const candidatePaths = [

@@ -589,6 +589,15 @@ ipcMain.handle('eb:openViaBrowser', async (e, args) => {
   }
 });
 
+ipcMain.handle('eb:openCookieBrowser', (e, url) => {
+  // Mở Chromium + extension GetCookie để user đăng nhập & copy cookie (IG…)
+  try {
+    return channelManager.openCookieBrowser(url);
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 // ------------------- Multi-Window / Dual Monitor Management -------------------
 function openWorkspaceWindow(targetWs = 'reup') {
   const isReup = (targetWs === 'reup');

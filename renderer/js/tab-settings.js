@@ -883,6 +883,22 @@ Naturalness over literalness: chọn câu nói tự nhiên đúng ý thay vì d�
     };
   }
 
+  // Mở Chromium (có extension GetCookie) để lấy cookie Instagram
+  const btnOpenIgCookie = document.getElementById('btnOpenIgCookie');
+  if (btnOpenIgCookie) {
+    btnOpenIgCookie.onclick = async () => {
+      try {
+        if (!(window.EB && window.EB.openCookieBrowser)) { alert('Chức năng chưa sẵn sàng — Ctrl+F5 lại.'); return; }
+        const r = await window.EB.openCookieBrowser('https://www.instagram.com/');
+        if (r && r.success) {
+          alert('Đã mở trình duyệt.\n1) Đăng nhập Instagram\n2) Bấm icon extension "Kenzious Get Cookie" (góc phải thanh địa chỉ)\n3) Copy cookie → dán vào ô "Instagram Cookie" → Lưu cấu hình Cookie');
+        } else {
+          alert('❌ Không mở được: ' + ((r && r.error) || 'không rõ'));
+        }
+      } catch (e) { alert('Lỗi: ' + (e && e.message || e)); }
+    };
+  }
+
   // Database Tab Actions
   const btnOptimizeDb = document.getElementById('btnOptimizeDatabase');
   const btnClearDbCache = document.getElementById('btnClearDatabaseCache');
