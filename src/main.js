@@ -589,10 +589,10 @@ ipcMain.handle('eb:openViaBrowser', async (e, args) => {
   }
 });
 
-ipcMain.handle('eb:openCookieBrowser', (e, url) => {
-  // Mở Chromium + extension GetCookie để user đăng nhập & copy cookie (IG…)
+ipcMain.handle('eb:openCookieBrowser', (e, url, proxy) => {
+  // Mở Chromium + extension GetCookie để user đăng nhập & copy cookie (IG…), có thể kèm proxy
   try {
-    return channelManager.openCookieBrowser(url);
+    return channelManager.openCookieBrowser(url, proxy);
   } catch (err) {
     return { success: false, error: err.message };
   }

@@ -151,6 +151,8 @@ async function loadAllSettingsStudio() {
     if (inputXhs) inputXhs.value = currentSettings.xhsCookie || '';
     if (inputFb) inputFb.value = currentSettings.fbCookie || '';
     if (inputIg) inputIg.value = currentSettings.igCookie || '';
+    const inputIgProxy = document.getElementById('settingIgCookieProxy');
+    if (inputIgProxy) inputIgProxy.value = currentSettings.igCookieProxy || '';
 
   } catch (err) {
     console.error('Lỗi nạp Settings Studio:', err);
@@ -875,7 +877,8 @@ Naturalness over literalness: chọn câu nói tự nhiên đúng ý thay vì d�
         douyinCookie: document.getElementById('settingDouyinCookie')?.value.trim() || '',
         xhsCookie: document.getElementById('settingXhsCookie')?.value.trim() || '',
         fbCookie: document.getElementById('settingFbCookie')?.value.trim() || '',
-        igCookie: document.getElementById('settingIgCookie')?.value.trim() || ''
+        igCookie: document.getElementById('settingIgCookie')?.value.trim() || '',
+        igCookieProxy: document.getElementById('settingIgCookieProxy')?.value.trim() || ''
       };
       await window.api.saveSettings(patch);
       playChime('soft');
@@ -889,7 +892,8 @@ Naturalness over literalness: chọn câu nói tự nhiên đúng ý thay vì d�
     btnOpenIgCookie.onclick = async () => {
       try {
         if (!(window.EB && window.EB.openCookieBrowser)) { alert('Chức năng chưa sẵn sàng — Ctrl+F5 lại.'); return; }
-        const r = await window.EB.openCookieBrowser('https://www.instagram.com/');
+        const proxy = (document.getElementById('settingIgCookieProxy')?.value || '').trim();
+        const r = await window.EB.openCookieBrowser('https://www.instagram.com/', proxy);
         if (r && r.success) {
           alert('Đã mở trình duyệt.\n1) Đăng nhập Instagram\n2) Bấm icon extension "Kenzious Get Cookie" (góc phải thanh địa chỉ)\n3) Copy cookie → dán vào ô "Instagram Cookie" → Lưu cấu hình Cookie');
         } else {
