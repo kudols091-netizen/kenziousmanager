@@ -336,12 +336,30 @@ ipcMain.handle('proxy:check', async (e, rawProxy, timeoutMs) => {
 });
 
 // ------------------- Stage 3: Channel Manager & Publisher IPC -------------------
+// Thêm nick Instagram (login/cookie) -> tự điền luôn "Cookie Instagram" cho tải/quét (màn Download).
+function syncIgCookieFromAccount(acc) {
+  try {
+    if (!acc || acc.platform !== 'instagram' || !Array.isArray(acc.cookies)) return;
+    const igCookie = acc.cookies
+      .filter(c => !c.domain || String(c.domain).includes('instagram.com'))
+      .map(c => `${c.name}=${c.value}`).join('; ');
+    if (igCookie && /(^|;\s*)sessionid=/.test(igCookie)) {
+      storage.saveSettings({ igCookie });
+      sendLog('[Instagram] Đã đồng bộ cookie nick vừa thêm sang "Cookie Instagram" (tải/quét).');
+    }
+  } catch (_) {}
+}
+
 ipcMain.handle('channel:importCookies', async (e, platform, cookies, proxy, name, options) => {
-  return sanitizeAccount(await channelManager.importCookies(platform, cookies, proxy, name, options));
+  const acc = await channelManager.importCookies(platform, cookies, proxy, name, options);
+  syncIgCookieFromAccount(acc);
+  return sanitizeAccount(acc);
 });
 
 ipcMain.handle('channel:interactiveLogin', async (e, platform, proxy, options) => {
-  return sanitizeAccount(await channelManager.interactiveLogin(platform, proxy, (msg) => sendLog(msg), options));
+  const acc = await channelManager.interactiveLogin(platform, proxy, (msg) => sendLog(msg), options);
+  syncIgCookieFromAccount(acc);
+  return sanitizeAccount(acc);
 });
 
 ipcMain.handle('channel:checkStatus', async (e, id) => {
