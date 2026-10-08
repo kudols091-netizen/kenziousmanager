@@ -176,10 +176,15 @@
     }
   }
 
+  // App tự bật server IG lúc khởi động (mất vài giây) → khi đang ở tab IG Reel mà chưa kết nối được thì tự thử lại
+  let igRetryTimer = null;
+  let igRetryCount = 0;
+
   function checkAndLoadIgReel() {
     const iframe = document.getElementById('iframe-igreel');
     const offlineState = document.getElementById('igreel-offline-state');
     if (!iframe) return;
+    clearTimeout(igRetryTimer);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 1800);
@@ -187,6 +192,7 @@
     fetch('http://localhost:5055', { mode: 'no-cors', signal: controller.signal })
       .then(() => {
         clearTimeout(timeoutId);
+        igRetryCount = 0;
         iframe.style.display = 'block';
         if (offlineState) offlineState.style.display = 'none';
         if (!iframe.src || iframe.src === 'about:blank') {
@@ -197,6 +203,10 @@
         clearTimeout(timeoutId);
         iframe.style.display = 'none';
         if (offlineState) offlineState.style.display = 'flex';
+        const ws = document.getElementById('workspace-igreel');
+        if (ws && ws.style.display !== 'none' && igRetryCount++ < 30) {
+          igRetryTimer = setTimeout(checkAndLoadIgReel, 2000);
+        }
       });
   }
 
@@ -226,6 +236,7 @@
       wsIgReel.classList.toggle('hidden-ws', !active);
       wsIgReel.style.display = active ? 'flex' : 'none';
       if (active) {
+        igRetryCount = 0;
         checkAndLoadIgReel();
       }
     }

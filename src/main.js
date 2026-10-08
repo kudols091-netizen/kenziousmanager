@@ -130,6 +130,8 @@ app.whenReady().then(async () => {
   createWindow();
   // Tự kiểm tra & tải bản cập nhật (chỉ chạy ở bản đóng gói)
   try { require('./core/updater').initAutoUpdate(mainWindow); } catch (err) { console.error('[Update]', err.message); }
+  // Server Python cho tab IG Reel (cổng 5055) — trước đây chỉ Run-KenziousReel.bat bật
+  require('./core/ig-server').start().catch((err) => console.error('[IG Server]', err.message));
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

@@ -5,9 +5,7 @@ echo ========================================================
 echo        KENZIOUS REEL V2 - AI VIDEO STUDIO
 echo ========================================================
 echo Dang khoi chay ung dung Kenzious Reel Studio v2...
-rem Tu dong khoi chay Kenzious-Instagram Server neu ton tai thu muc
-powershell -NoProfile -Command "if ((Test-Path 'D:\KOAL\Kenzious-instagram\ui\server.py') -and (-not (Get-NetTCPConnection -LocalPort 5055 -ErrorAction SilentlyContinue))) { Start-Process python -ArgumentList 'D:\KOAL\Kenzious-instagram\ui\server.py' -WorkingDirectory 'D:\KOAL\Kenzious-instagram' -WindowStyle Hidden }"
-
+rem Server Kenzious-Instagram (cong 5055) do app tu bat: src/core/ig-server.js
 
 if exist "%~dp0node_modules\electron\dist\electron.exe" (
     start "" "%~dp0node_modules\electron\dist\electron.exe" "%~dp0."

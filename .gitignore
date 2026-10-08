@@ -25,6 +25,9 @@ data/profiles/
 data/gemini_browser_profile/
 data/post_errors/
 data/.migrated-from-resources
+# Cookie phiên đăng nhập thật (sessionid...) — KHÔNG commit
+data/cookies/
+data/last-version.txt
 
 # Bundled Chromium (398MB, đóng gói qua extraResources)
 Chromium/
@@ -45,6 +48,8 @@ bin/*.zip
 bin/ffmpeg
 bin/ffprobe
 bin/yt-dlp
+# Python nhúng cho IG server (tạo bằng scripts/setup-ig-python.ps1)
+bin/python/
 
 # Environment & Credentials
 .env

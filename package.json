@@ -1,6 +1,6 @@
 {
   "name": "kenzious-reel-v2",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Kenzious Reel v2 — All-In-One AI Video Studio, Auto Reup & Multi-Channel Publisher",
   "main": "src/main.js",
   "scripts": {
@@ -43,6 +43,17 @@
       {
         "from": "extensions",
         "to": "extensions"
+      },
+      {
+        "from": "../Kenzious-instagram",
+        "to": "ig-server",
+        "filter": [
+          "core/**",
+          "ui/**",
+          "main.py",
+          "requirements.txt",
+          "!**/__pycache__/**"
+        ]
       },
       {
         "from": "data",
