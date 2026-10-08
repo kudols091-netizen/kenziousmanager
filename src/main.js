@@ -105,7 +105,7 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Bản đóng gói: bỏ menu mặc định (Ctrl+Shift+I / Ctrl+R…)
   if (app.isPackaged) Menu.setApplicationMenu(null);
   // Mã hoá cookie/token/API key còn plaintext từ bản cũ (DPAPI)
@@ -116,6 +116,17 @@ app.whenReady().then(() => {
   } catch (err) {
     console.error('[Secure] Lỗi mã hoá dữ liệu cũ:', err.message);
   }
+  // Cache-bust theo version: sau auto-update version đổi -> xoá cache renderer để KHÔNG dính giao diện cũ.
+  try {
+    const fs = require('fs'); const path = require('path'); const paths = require('./core/paths');
+    const verFile = path.join(paths.getDataDir(), 'last-version.txt');
+    let lastVer = ''; try { lastVer = fs.readFileSync(verFile, 'utf8').trim(); } catch (_) {}
+    if (lastVer !== app.getVersion()) {
+      try { await require('electron').session.defaultSession.clearCache(); } catch (_) {}
+      try { fs.writeFileSync(verFile, app.getVersion()); } catch (_) {}
+      console.log('[Cache] Version đổi (' + lastVer + ' -> ' + app.getVersion() + ') — đã xoá cache renderer');
+    }
+  } catch (_) {}
   createWindow();
   // Tự kiểm tra & tải bản cập nhật (chỉ chạy ở bản đóng gói)
   try { require('./core/updater').initAutoUpdate(mainWindow); } catch (err) { console.error('[Update]', err.message); }
