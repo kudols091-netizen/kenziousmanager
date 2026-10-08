@@ -890,6 +890,24 @@ Naturalness over literalness: chọn câu nói tự nhiên đúng ý thay vì d�
     };
   }
 
+  // Dùng cookie (có sessionid) từ nick IG đã kết nối ở Quản lý kênh
+  const btnUseIgAcc = document.getElementById('btnUseIgAccountCookie');
+  if (btnUseIgAcc) {
+    btnUseIgAcc.onclick = async () => {
+      try {
+        if (!(window.api && window.api.useIgCookieForDownload)) { alert('Chức năng chưa sẵn sàng — Ctrl+F5 lại.'); return; }
+        const r = await window.api.useIgCookieForDownload();
+        if (r && r.success) {
+          const s = await window.api.getSettings();
+          const inp = document.getElementById('settingIgCookie'); if (inp) inp.value = (s && s.igCookie) || '';
+          alert('✅ Đã lấy cookie (có sessionid) từ nick IG "' + (r.account || '') + '" và điền vào ô. Bấm "Lưu cấu hình Cookie" rồi quét lại.');
+        } else {
+          alert('⚠️ ' + ((r && r.error) || 'Không lấy được cookie từ nick IG.'));
+        }
+      } catch (e) { alert('Lỗi: ' + (e && e.message || e)); }
+    };
+  }
+
   // Mở Chromium (có extension GetCookie) để lấy cookie Instagram
   const btnOpenIgCookie = document.getElementById('btnOpenIgCookie');
   if (btnOpenIgCookie) {

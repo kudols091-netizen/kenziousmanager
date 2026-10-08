@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('api', {
   // Stage 3: Channel Manager & Publishing
   importCookies: (platform, cookies, proxy, name, options) => ipcRenderer.invoke('channel:importCookies', platform, cookies, proxy, name, options),
   interactiveLogin: (platform, proxy, options) => ipcRenderer.invoke('channel:interactiveLogin', platform, proxy, options),
+  useIgCookieForDownload: () => ipcRenderer.invoke('account:useIgCookieForDownload'),
   checkAccountStatus: (id) => ipcRenderer.invoke('channel:checkStatus', id),
   openBrowser: (accountId) => ipcRenderer.invoke('channel:openBrowser', accountId),
   updateAccountSettings: (accountId, patch) => ipcRenderer.invoke('channel:updateSettings', accountId, patch),
