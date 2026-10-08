@@ -5,7 +5,7 @@ const secure = require('./secure-store');
 
 // Field được mã hoá khi lưu xuống đĩa (DPAPI) — xem secure-store.js
 const ACCOUNT_SECRET_FIELDS = ['cookies', 'token'];
-const SETTINGS_SECRET_FIELDS = ['apiKey', 'elevenLabsApiKey', 'openSubtitlesApiKey', 'geminiWebCookies'];
+const SETTINGS_SECRET_FIELDS = ['apiKey', 'elevenLabsApiKey', 'openSubtitlesApiKey', 'geminiWebCookies', 'igCookie'];
 
 function resolveBundledBin(name) {
   const local = path.join(__dirname, '..', '..', 'bin', name);

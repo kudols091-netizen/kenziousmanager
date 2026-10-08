@@ -146,9 +146,11 @@ async function loadAllSettingsStudio() {
     const inputDouyin = document.getElementById('settingDouyinCookie');
     const inputXhs = document.getElementById('settingXhsCookie');
     const inputFb = document.getElementById('settingFbCookie');
+    const inputIg = document.getElementById('settingIgCookie');
     if (inputDouyin) inputDouyin.value = currentSettings.douyinCookie || '';
     if (inputXhs) inputXhs.value = currentSettings.xhsCookie || '';
     if (inputFb) inputFb.value = currentSettings.fbCookie || '';
+    if (inputIg) inputIg.value = currentSettings.igCookie || '';
 
   } catch (err) {
     console.error('Lỗi nạp Settings Studio:', err);
@@ -872,7 +874,8 @@ Naturalness over literalness: chọn câu nói tự nhiên đúng ý thay vì d�
       const patch = {
         douyinCookie: document.getElementById('settingDouyinCookie')?.value.trim() || '',
         xhsCookie: document.getElementById('settingXhsCookie')?.value.trim() || '',
-        fbCookie: document.getElementById('settingFbCookie')?.value.trim() || ''
+        fbCookie: document.getElementById('settingFbCookie')?.value.trim() || '',
+        igCookie: document.getElementById('settingIgCookie')?.value.trim() || ''
       };
       await window.api.saveSettings(patch);
       playChime('soft');

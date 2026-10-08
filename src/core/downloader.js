@@ -3,6 +3,7 @@ const { track, killTree } = require('./process-registry');
 const path = require('path');
 const fs = require('fs');
 const storage = require('./storage');
+const paths = require('./paths');
 
 class Downloader {
   constructor() {
@@ -22,6 +23,52 @@ class Downloader {
       if (fs.existsSync(c)) return c;
     }
     return 'yt-dlp';
+  }
+
+  // Tạo file cookies.txt (Netscape) cho yt-dlp theo nền tảng của URL, lấy cookie user đã dán ở Cài đặt.
+  // Instagram/Facebook bắt buộc cookie đăng nhập mới quét/tải được profile. Trả path hoặc null.
+  getCookieFileForUrl(url) {
+    const u = String(url || '').toLowerCase();
+    const s = storage.getSettings();
+    let raw = '', domain = '', name = '';
+    if (u.includes('instagram.com')) { raw = s.igCookie; domain = '.instagram.com'; name = 'instagram'; }
+    else if (u.includes('facebook.com') || u.includes('fb.watch')) { raw = s.fbCookie; domain = '.facebook.com'; name = 'facebook'; }
+    else if (u.includes('douyin.com')) { raw = s.douyinCookie; domain = '.douyin.com'; name = 'douyin'; }
+    else if (u.includes('xiaohongshu.com') || u.includes('xhslink.com')) { raw = s.xhsCookie; domain = '.xiaohongshu.com'; name = 'xiaohongshu'; }
+    raw = String(raw || '').trim();
+    if (!raw) return null;
+
+    let content;
+    if (/^#\s*Netscape/i.test(raw) || /\t/.test(raw)) {
+      content = raw; // user dán sẵn cookies.txt Netscape
+    } else {
+      const exp = 2000000000; // ~2033
+      const lines = ['# Netscape HTTP Cookie File'];
+      raw.split(/;\s*/).forEach(pair => {
+        const i = pair.indexOf('=');
+        if (i < 1) return;
+        const k = pair.slice(0, i).trim();
+        const v = pair.slice(i + 1).trim();
+        if (k) lines.push([domain, 'TRUE', '/', 'TRUE', exp, k, v].join('\t'));
+      });
+      if (lines.length < 2) return null;
+      content = lines.join('\n') + '\n';
+    }
+    try {
+      const dir = path.join(paths.getDataDir(), 'cookies');
+      fs.mkdirSync(dir, { recursive: true });
+      const file = path.join(dir, name + '.txt');
+      fs.writeFileSync(file, content, 'utf8');
+      return file;
+    } catch (_) { return null; }
+  }
+
+  hasCookieSetting(url) {
+    const u = String(url || '').toLowerCase();
+    const s = storage.getSettings();
+    if (u.includes('instagram.com')) return !!(s.igCookie && s.igCookie.trim());
+    if (u.includes('facebook.com')) return !!(s.fbCookie && s.fbCookie.trim());
+    return true; // nền khác không bắt buộc cookie
   }
 
   detectPlatform(url) {
@@ -82,9 +129,11 @@ class Downloader {
       const args = [
         '--dump-single-json',
         '--no-playlist',
-        '--no-warnings',
-        url
+        '--no-warnings'
       ];
+      const ck = this.getCookieFileForUrl(url);
+      if (ck) args.push('--cookies', ck);
+      args.push(url);
 
       const proc = track(spawn(ytdlp, args, { windowsHide: true }));
       let stdout = '';
@@ -204,6 +253,9 @@ class Downloader {
 
     if (options.cookieFile && fs.existsSync(options.cookieFile)) {
       args.push('--cookies', options.cookieFile);
+    } else {
+      const ck = this.getCookieFileForUrl(url);
+      if (ck) args.push('--cookies', ck);
     }
 
     return new Promise((resolve, reject) => {
@@ -297,9 +349,11 @@ class Downloader {
         '--dump-single-json',
         '--flat-playlist',
         '--playlist-end', String(limit),
-        '--no-warnings',
-        url
+        '--no-warnings'
       ];
+      const ck = this.getCookieFileForUrl(url);
+      if (ck) args.push('--cookies', ck);
+      args.push(url);
 
       const proc = track(spawn(ytdlp, args, { windowsHide: true }));
       let stdout = '';
@@ -367,7 +421,13 @@ class Downloader {
             reject(new Error('Failed to parse channel JSON: ' + e.message));
           }
         } else {
-          reject(new Error('Quét kênh thất bại (code ' + code + '): ' + (stderr || 'Unknown error')));
+          const needCookie = /instagram\.com/i.test(url) && !this.hasCookieSetting(url)
+            && /unable to extract|login required|rate.?limit|empty media|HTTP Error 40|not available|private/i.test(stderr || '');
+          if (needCookie) {
+            reject(new Error('Instagram yêu cầu đăng nhập để quét kênh. Vào Cài đặt → dán "Cookie Instagram" (từ tài khoản IG đã đăng nhập) rồi quét lại.'));
+          } else {
+            reject(new Error('Quét kênh thất bại (code ' + code + '): ' + (stderr || 'Unknown error')));
+          }
         }
       });
     });
