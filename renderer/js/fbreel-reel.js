@@ -1718,7 +1718,7 @@
     + '      <th style="width:26px"><input type="checkbox" id="reel-pall" class="selchk"></th>'
     + '      <th style="width:44px">STT</th><th style="width:150px">ID Page</th><th>Tên Page</th>'
     + '      <th style="width:120px">Clone</th><th style="width:130px">Proxy Via</th><th style="width:150px">Token Page</th>'
-    + '      <th style="width:50px">Lượt</th><th style="width:200px">Trạng Thái</th><th style="width:180px">Kết Quả</th><th style="width:84px;text-align:center">Mở Page</th>'
+    + '      <th style="width:50px">Lượt</th><th style="width:200px">Trạng Thái</th><th style="width:180px">Kết Quả</th><th style="width:120px;text-align:center">Thao tác</th>'
     + '    </tr></thead><tbody id="reel-pages-body"></tbody></table></div>'
     + '    <div id="reel-view-config" style="display:none;overflow:auto"></div>'
     + '    <div id="reel-view-cols" style="display:none;overflow:auto"></div>'
@@ -4600,7 +4600,7 @@
       + '<td><span class="ell" style="font:11px Consolas,monospace">' + (ptk ? esc(mask(ptk)) : '<span class="st-wait">—</span>') + '</span></td>'
       + '<td style="text-align:center;font-weight:700">' + (p.done || 0) + '</td>'
       + '<td>' + pageStatusHtml(p) + '</td><td>' + link + '</td>'
-      + '<td style="text-align:center"><button class="vbtn-mini" data-action="kzOpenPage" data-page-id="' + esc(p.id) + '" data-ci="' + o.ci + '" title="Mở Fanpage này bằng phiên của Clone #' + (o.ci + 1) + '">🌐 Mở</button></td>';
+      + '<td style="text-align:center;white-space:nowrap"><button class="vbtn-mini" data-action="kzOpenPage" data-page-id="' + esc(p.id) + '" data-ci="' + o.ci + '" title="Mở Fanpage này bằng phiên của Clone #' + (o.ci + 1) + '">🌐 Mở</button> <button class="vbtn-mini" data-action="kzDelPage" data-stop data-page-id="' + esc(p.id) + '" title="Xoá page này khỏi danh sách (không ảnh hưởng page thật trên Facebook)" style="color:var(--danger-color);border-color:rgba(255,80,80,0.35)">🗑</button></td>';
   }
   var _pageRowMap = {};   // pageId -> tr
   function renderPages() {
@@ -4949,6 +4949,19 @@
   window.KZ.action('kzOpenProxyReel', function (el) { window.__kzOpenProxyModal(parseInt(el.dataset.i, 10)); });
   window.KZ.action('kzOpenVia', function (el) { window.__kzOpenVia(parseInt(el.dataset.i, 10)); });
   window.KZ.action('kzOpenPage', function (el) { window.__kzOpenPage(el.dataset.pageId, parseInt(el.dataset.ci, 10)); });
+  // Xoá 1 page khỏi danh sách tool (không đụng page thật trên FB). Gỡ khỏi pages/byId/ptok + lưu bền (CLPAGES + PPAGES).
+  window.KZ.action('kzDelPage', function (el) {
+    var pid = el.dataset.pageId; if (!pid) return;
+    var nm = pageNameById(pid);
+    if (!confirm('Xoá page "' + nm + '" (' + pid + ') khỏi danh sách?\nChỉ xoá trong tool, KHÔNG ảnh hưởng page thật trên Facebook.')) return;
+    var c = ownerCloneOf(pid); if (!c) { log('Không tìm thấy page để xoá.', 'err'); return; }
+    var remain = (c.pages || []).map(function (p) { return p.id; }).filter(function (id) { return id !== pid; });
+    if (c.ptok) delete c.ptok[pid];
+    setClonePagesFromText(c, remain.join('\n'));   // dựng lại pages/byId + cập nhật CLPAGES (bền qua F5)
+    savePagesData(c);                               // ghi lại PPAGES (tên/token) không còn page đã xoá
+    renderPages(); updateSummary();
+    log('Đã xoá page ' + nm + ' (' + pid + ') khỏi danh sách.', 'ok');
+  });
 
   window.__kzOpenPage = async function (pageId, ci) {
     var c = CLONES[ci];
