@@ -1807,7 +1807,7 @@
     + '        <div class="rsm-fields">'
     + '          <div class="rsm-f"><label>Comment / bài <span style="font-weight:400;opacity:.55">(0 = tất cả Page)</span></label><input id="reel-seed-per" type="number" min="0" value="0"></div>'
     + '          <div class="rsm-f"><label>Delay (giây)</label><input id="reel-seed-delay" type="number" min="0" value="15"></div>'
-    + '          <div class="rsm-f"><label>Max comment / page</label><input id="reel-seed-max" type="number" min="0" value="0"></div>'
+    + '          <div class="rsm-f"><label>Max comment / page / bài</label><input id="reel-seed-max" type="number" min="0" value="0" title="Số comment tối đa mỗi page trên MỖI bài (0 = không giới hạn). Áp dụng riêng từng bài, không phải tổng cả phiên."></div>'
     + '          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><label class="rsm-chk" style="height:auto"><input type="checkbox" id="reel-seed-react-on"> Thả cảm xúc trước khi comment</label><select id="reel-seed-react-type" style="height:32px;padding:4px 8px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-primary);color:var(--text-primary);font-size:12px"><option value="random">🎲 Ngẫu nhiên</option><option value="like">👍 Thích</option><option value="love">❤️ Yêu thích</option><option value="care">🥰 Thương thương</option><option value="haha">😆 Haha</option><option value="wow">😮 Wow</option><option value="sad">😢 Buồn</option><option value="angry">😡 Phẫn nộ</option></select></div>'
     + '          <label class="rsm-chk"><input type="checkbox" id="reel-seed-self"> Cho Page bình luận cả bài của chính mình <span style="font-weight:400;opacity:.55">(bật nếu muốn mọi page seed, kể cả page chủ bài)</span></label>'
     + '        </div>'
@@ -4355,11 +4355,13 @@
       } catch (e) {}
     }
     for (var ti = 0; ti < targets.length && !SEEDSTOP; ti++) {
-      var tg = targets[ti], done = 0, tries = 0;
+      var tg = targets[ti], done = 0, tries = 0, cntPost = {};
       while (done < per && tries < seeders.length && !SEEDSTOP) {
         var s = seeders[ptr % seeders.length]; ptr++; tries++;
         if (!opts.self && s.id === tg.owner) continue;
-        if (maxPer > 0 && (cnt[s.id] || 0) >= maxPer) continue;
+        // maxPer = số comment tối đa mỗi page TRÊN MỖI BÀI (cntPost reset theo từng bài),
+        // không phải tổng cả phiên — nếu không bài sau sẽ bị bỏ khi page đã đạt quota ở bài trước.
+        if (maxPer > 0 && (cntPost[s.id] || 0) >= maxPer) continue;
         // Gán cứng page→mẫu (nếu có) → dùng đúng mẫu đó; nếu không thì xoay vòng theo page (s._si) + bài (ti).
         var pk = null, _mi = (opts.map && opts.map[s.id] != null) ? opts.map[s.id] : -1;
         if (_mi >= 0 && seed[_mi]) { var _nm = seedNorm(seed[_mi]); if (_nm.t.trim() || _nm.imgs.length) pk = _nm; }
@@ -4375,16 +4377,16 @@
           if (imgs.length) {
             // COMMENT KÈM ẢNH: Graph API /comments với attachment_id (ảnh unpublished) — đường FB hỗ trợ chính thức.
             cg = await commentPhotoViaGraph(s, tg, msg, imgs);
-            if (cg.ok) { okc++; done++; cnt[s.id] = (cnt[s.id] || 0) + 1; bumpCmt(1); seedLog('🌱📷 ' + (s.name || s.id) + ' → bài ' + tg.id + ' ✓', 'ok'); }
+            if (cg.ok) { okc++; done++; cnt[s.id] = (cnt[s.id] || 0) + 1; cntPost[s.id] = (cntPost[s.id] || 0) + 1; bumpCmt(1); seedLog('🌱📷 ' + (s.name || s.id) + ' → bài ' + tg.id + ' ✓', 'ok'); }
             else { errc++; seedLog('🌱📷 ' + (s.name || s.id) + ' → bài ' + tg.id + ' lỗi ảnh: ' + cg.err, 'err'); if (/\b190\b|session|expired|malformed|access token/i.test(cg.err || '')) skipped[s.id] = 'token die'; }
           } else {
             // COMMENT CHỮ: ƯU TIÊN GraphQL đóng-vai-Page (seed được bài NGƯỜI KHÁC). Lỗi thì lùi về token Graph.
             cg = await commentAsPage(s, tg, msg, null);
-            if (cg.ok) { okc++; done++; cnt[s.id] = (cnt[s.id] || 0) + 1; bumpCmt(1); seedLog('🌱 ' + (s.name || s.id) + ' → bài ' + tg.id + ' ✓', 'ok'); }
+            if (cg.ok) { okc++; done++; cnt[s.id] = (cnt[s.id] || 0) + 1; cntPost[s.id] = (cntPost[s.id] || 0) + 1; bumpCmt(1); seedLog('🌱 ' + (s.name || s.id) + ' → bài ' + tg.id + ' ✓', 'ok'); }
             else if (!s.token) { errc++; seedLog('🌱 ' + (s.name || s.id) + ' → bài ' + tg.id + ' lỗi: ' + cg.err, 'err'); }
             else {
               var r = await graph('POST', GVER + '/' + tg.id + '/comments?message=' + enc(msg) + '&access_token=' + enc(s.token), (s.cl && s.cl.proxy) || '');
-              if (r.json && r.json.id) { okc++; done++; cnt[s.id] = (cnt[s.id] || 0) + 1; bumpCmt(1); seedLog('🌱 ' + (s.name || s.id) + ' → bài ' + tg.id + ' ✓', 'ok'); }
+              if (r.json && r.json.id) { okc++; done++; cnt[s.id] = (cnt[s.id] || 0) + 1; cntPost[s.id] = (cntPost[s.id] || 0) + 1; bumpCmt(1); seedLog('🌱 ' + (s.name || s.id) + ' → bài ' + tg.id + ' ✓', 'ok'); }
               else { errc++; var em = errStr(r.json); seedLog('🌱 ' + (s.name || s.id) + ' → bài ' + tg.id + ' lỗi: ' + cg.err + (r.json ? (' | token: ' + em) : ''), 'err'); if (/\b190\b|session|expired|malformed|access token/i.test(em)) skipped[s.id] = 'token die'; }
             }
           }
