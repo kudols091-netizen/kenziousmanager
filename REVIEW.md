@@ -27,7 +27,7 @@
 - **File:** `renderer/js/tab-download.js:549` (liên đới `src/core/publisher.js:266`)
 - **Vấn đề:** `window.api.scanFolderClips(dir)` trả về mảng object có thuộc tính `mediaPath`, nhưng `addLocalClipsToQueue(clips)` lại đọc `clip.filePath` (bị `undefined`) rồi gọi `.split(/[\\/]/)` gây crash ngay lập tức.
 - **Strike:** 0/2
-- **Status:** pending
+- **Status:** done
 
 **🔴 BLOCKER — Crash khi nạp thư mục video cục bộ vào hàng đợi Render**
 - **File:** `renderer/js/tab-download.js:549`
@@ -51,7 +51,7 @@
 - **File:** `renderer/js/tab-settings.js:605` (liên đới `src/core/ai-pipeline.js:365`)
 - **Vấn đề:** `aiPipeline.loginGeminiInteractive()` trả về `{ ok: true, message, cookiesCount }`, nhưng `tab-settings.js:605` lại kiểm tra `if (res && res.success)` khiến người dùng đăng nhập thành công vẫn luôn bị báo lỗi thất bại.
 - **Strike:** 0/2
-- **Status:** pending
+- **Status:** done
 
 **🔴 BLOCKER — Đăng nhập Gemini Web ở Settings Studio luôn báo lỗi dù đã lấy được cookie**
 - **File:** `renderer/js/tab-settings.js:605`
@@ -77,7 +77,7 @@
 - **File:** `src/core/voice-synthesizer.js:55` (liên đới `src/core/storage.js:8,148` và `renderer/js/tab-settings.js:176,772,893`)
 - **Vấn đề:** Giao diện Settings và `storage.js` lưu và mã hóa khóa API dưới tên `settings.elevenLabsApiKey`, nhưng `VoiceSynthesizer.getElevenLabsKey()` lại đọc `s.elevenLabsKey`, dẫn đến hàm luôn trả về chuỗi rỗng `''` và ElevenLabs TTS không bao giờ hoạt động.
 - **Strike:** 0/2
-- **Status:** pending
+- **Status:** done
 
 **🔴 BLOCKER — ElevenLabs TTS luôn báo thiếu API Key do đọc sai tên thuộc tính trong `settings.json`**
 - **File:** `src/core/voice-synthesizer.js:55`
