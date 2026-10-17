@@ -4049,6 +4049,8 @@
     if (/^\s*(?:<!doctype|<html)/i.test(txt)) return 'FB trả HTML (sai dtsg/cookie hoặc bị chặn)';
     return '';
   }
+  // FB giới hạn số page tạo/ngày — gặp lỗi này thì tạo tiếp cũng dính, nên dừng clone đó luôn.
+  function isPgRateLimit(msg) { return /too many|created too many|quá nhiều|đã tạo quá|try again later|thử lại sau|limit/i.test(String(msg || '')); }
   async function createPageVia(c, name, cat, bio) {
     if (!(await cloneUserAuth(c))) return { ok: false, err: 'auth clone ' + (c.uid || '?') + ': ' + (c._uauthErr || '?') };
     var input = { bio: bio || '', categories: [cat], creation_source: 'comet', name: name, off_platform_creator_reachout_id: null, page_referrer: 'null', actor_id: c.uid, client_mutation_id: '1' };
@@ -4106,6 +4108,7 @@
       + '  <div style="display:flex;gap:10px;margin-bottom:10px"><div style="flex:2"><label style="' + lab + '">Category ID</label><input id="reel-pg-cat" value="200600219953504" style="' + inp + '"></div>'
       + '  <div style="flex:1"><label style="' + lab + '">Delay tối thiểu (s)</label><input id="reel-pg-dmin" type="number" min="0" step="1" style="' + inp + '"></div>'
       + '  <div style="flex:1"><label style="' + lab + '">Delay tối đa (s)</label><input id="reel-pg-dmax" type="number" min="0" step="1" style="' + inp + '"></div></div>'
+      + '  <div style="font-size:11px;color:var(--text-secondary);margin:-4px 0 10px">💡 FB giới hạn số page/ngày — nên để ~180–300s (≈5 phút)/page. Tạo nhanh dễ bị chặn "too many Pages" (gặp lỗi đó app sẽ tự dừng clone, thử lại sau vài giờ).</div>'
       + '  <label style="' + lab + '">Mô tả / Bio <span style="font-weight:400;opacity:.6">(tuỳ chọn)</span></label><textarea id="reel-pg-bio" style="' + inp + ';height:52px;margin-bottom:12px"></textarea>'
       + '  <label style="' + lab + '">Ảnh đại diện Page <span style="font-weight:400;opacity:.6">(tuỳ chọn · JPG/PNG)</span></label>'
       + '  <input id="reel-pg-avatar" type="file" accept="image/*" style="' + inp + ';margin-bottom:6px;padding:6px">'
@@ -4154,8 +4157,8 @@
     });
     paintModes();
     var _pd = {}; try { _pd = JSON.parse(localStorage.getItem('kz_reel_pgdelay') || '{}') || {}; } catch (e) {}
-    q('reel-pg-dmin').value = (_pd.min != null) ? _pd.min : 30;
-    q('reel-pg-dmax').value = (_pd.max != null) ? _pd.max : 60;
+    q('reel-pg-dmin').value = (_pd.min != null) ? _pd.min : 180;
+    q('reel-pg-dmax').value = (_pd.max != null) ? _pd.max : 300;
     var logEl = q('reel-pg-log');
     function plog(m) { logEl.textContent += (logEl.textContent ? '\n' : '') + m; logEl.scrollTop = logEl.scrollHeight; }
     q('reel-pg-run').onclick = async function () {
@@ -4254,11 +4257,15 @@
       if (mode === 'bm') {
         var bms = bmIds.length ? bmIds : await cloneBusinesses(c);
         if (!bms.length) { plog('  – ' + tag + ': không có BM (nhập ID BM, hoặc clone chưa có BM/token).'); continue; }
-        for (var bi = 0; bi < bms.length && !PGSTOP; bi++) {
+        var _blocked = false;
+        for (var bi = 0; bi < bms.length && !PGSTOP && !_blocked; bi++) {
           for (var ni = 0; ni < names.length && !PGSTOP; ni++) {
             var r = await createPageBM(c, bms[bi], names[ni], cat, bio);
             if (r.ok) { ok++; plog('  ✓ ' + tag + ' · BM ' + bms[bi] + ' → "' + names[ni] + '"' + (r.id ? (' · id ' + r.id) : '')); await applyAvatar(c, r.id, names[ni]); }
-            else { err++; plog('  ✗ ' + tag + ' · BM ' + bms[bi] + ' → "' + names[ni] + '": ' + r.err); }
+            else {
+              err++; plog('  ✗ ' + tag + ' · BM ' + bms[bi] + ' → "' + names[ni] + '": ' + r.err);
+              if (isPgRateLimit(r.err)) { plog('  ⛔ ' + tag + ' bị FB chặn tạo page (rate limit) — bỏ qua phần còn lại của clone này, thử lại sau vài giờ.'); _blocked = true; break; }
+            }
             setStat();
             if (!PGSTOP && !(k === idxs.length - 1 && bi === bms.length - 1 && ni === names.length - 1)) await pgWait();
           }
@@ -4267,7 +4274,10 @@
         for (var vi = 0; vi < names.length && !PGSTOP; vi++) {
           var rr = await createPageVia(c, names[vi], cat, bio);
           if (rr.ok) { ok++; plog('  ✓ ' + tag + ' → "' + names[vi] + '"' + (rr.id ? (' · id ' + rr.id) : '')); await applyAvatar(c, rr.id, names[vi]); }
-          else { err++; plog('  ✗ ' + tag + ' → "' + names[vi] + '": ' + rr.err); }
+          else {
+            err++; plog('  ✗ ' + tag + ' → "' + names[vi] + '": ' + rr.err);
+            if (isPgRateLimit(rr.err)) { plog('  ⛔ ' + tag + ' bị FB chặn tạo page (rate limit) — bỏ qua các tên còn lại của clone này, thử lại sau vài giờ.'); break; }
+          }
           setStat();
           if (!PGSTOP && !(k === idxs.length - 1 && vi === names.length - 1)) await pgWait();
         }
