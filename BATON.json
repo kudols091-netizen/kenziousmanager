@@ -1,7 +1,7 @@
 {
-  "holder": "reviewer",
+  "holder": "soldier",
   "task": "initial-codebase-audit",
-  "acquired_at": "2026-10-17T22:00:00Z",
+  "acquired_at": "2026-10-17T23:10:00+07:00",
   "status": "ready",
   "history": [
     {
@@ -9,6 +9,12 @@
       "action": "initialized",
       "task": "initial-codebase-audit",
       "at": "2026-10-17T22:00:00Z"
+    },
+    {
+      "holder": "reviewer",
+      "action": "passed",
+      "task": "initial-codebase-audit",
+      "at": "2026-10-17T23:10:00+07:00"
     }
   ]
 }
