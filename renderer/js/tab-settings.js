@@ -602,14 +602,14 @@ function initModalsHandlers() {
       try {
         if (window.api && window.api.loginGeminiInteractive) {
           const res = await window.api.loginGeminiInteractive({ name: accName, timeoutMs: 180000 });
-          if (res && res.success) {
+          if (res && (res.ok || res.success)) {
             if (!currentSettings.browserAiAccounts) currentSettings.browserAiAccounts = [];
             currentSettings.browserAiAccounts.push({
               id: 'gemini_' + Date.now(),
               provider: 'gemini',
               name: accName,
               status: 'ok',
-              cookiesCount: res.cookies ? res.cookies.length : 0,
+              cookiesCount: res.cookiesCount ?? (res.cookies ? res.cookies.length : 0),
               updatedAt: Date.now()
             });
 
