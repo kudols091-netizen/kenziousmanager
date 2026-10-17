@@ -4,9 +4,18 @@
 
 ---
 
+## Model Assignment
+
+| Vai trò | Agent (Orca) | Model | Lý do |
+|---|---|---|---|
+| **Reviewer** | Antigravity (Gemini) | Gemini Ultra | Context window lớn, đọc toàn bộ codebase một lần, phân tích kiến trúc |
+| **Soldier** | Claude | Claude Opus 4.6 (Max 5x) | Reasoning + coding mạnh nhất, follow instruction chính xác, commit sạch |
+
+---
+
 ## Vai trò
 
-### Reviewer
+### Reviewer (Gemini Ultra via Antigravity)
 
 - Đọc toàn bộ codebase, đánh giá chất lượng, tìm bug, security gap
 - Xuất REVIEW.md với task list xếp theo severity
@@ -14,7 +23,7 @@
 - Reject phải có bằng chứng (Structured Rejection)
 - Xong → đổi BATON.json holder thành `"soldier"`
 
-### Soldier
+### Soldier (Claude Opus 4.6)
 
 - Đọc REVIEW.md, pick task theo priority (🔴 trước)
 - Code + fix + commit riêng từng task
