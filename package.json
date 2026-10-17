@@ -6,7 +6,11 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "lint": "eslint src/ renderer/js/",
+    "format": "prettier --write \"src/**/*.js\" \"renderer/js/**/*.js\"",
+    "test": "node scripts/smoke-test.js",
+    "check": "npm run lint && npm run test"
   },
   "build": {
     "appId": "com.kenzious.reelstudio",
@@ -118,7 +122,11 @@
   },
   "devDependencies": {
     "electron": "^31.3.0",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10"
   },
   "overrides": {
     "uint8-util": "2.2.6"
