@@ -52,7 +52,7 @@ class VoiceSynthesizer {
 
   getElevenLabsKey() {
     const s = storage.getSettings();
-    return s.elevenLabsKey || process.env.ELEVENLABS_API_KEY || '';
+    return s.elevenLabsApiKey || s.elevenLabsKey || process.env.ELEVENLABS_API_KEY || '';
   }
 
   /**
