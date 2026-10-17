@@ -546,7 +546,8 @@ function addLocalFilesToQueue(files) {
 
 function addLocalClipsToQueue(clips) {
   clips.forEach(clip => {
-    const filePath = typeof clip === 'string' ? clip : clip.filePath;
+    const filePath = typeof clip === 'string' ? clip : (clip.filePath || clip.mediaPath || '');
+    if (!filePath) return;
     const parts = filePath.split(/[\\/]/);
     const fileName = parts[parts.length - 1];
     const title = (clip && clip.title) || fileName.replace(/\.[^/.]+$/, '');
