@@ -764,39 +764,55 @@ function initAddAccountModal() {
     });
   });
 
-  if (btnTabCookie) {
-    btnTabCookie.addEventListener('click', () => {
-      activeMethod = 'cookie';
-      btnTabCookie.style.background = 'rgba(255,35,157,0.18)';
-      btnTabCookie.style.borderColor = 'var(--primary-accent)';
-      btnTabCookie.style.color = '#fff';
-      if (btnTabBrowser) {
-        btnTabBrowser.style.background = 'transparent';
-        btnTabBrowser.style.borderColor = 'var(--border-color)';
-        btnTabBrowser.style.color = 'var(--text-muted)';
+  const btnTabExt = document.getElementById('btnTabExtensionCookie');
+  const secExt = document.getElementById('sectionExtensionCookie');
+  const extStatus = document.getElementById('extCookieStatusFeedback');
+  const btnOpenExtCookie = document.getElementById('btnOpenExtensionCookie');
+
+  // Chuyển qua lại 3 cách thêm cookie (1 Nhập · 2 Trực quan · 3 Extension)
+  function setMethod(m) {
+    activeMethod = m;
+    const on = ['rgba(255,35,157,0.18)', 'var(--primary-accent)', '#fff'];
+    const off = ['transparent', 'var(--border-color)', 'var(--text-muted)'];
+    [[btnTabCookie, 'cookie'], [btnTabBrowser, 'browser'], [btnTabExt, 'extension']].forEach(function (pair) {
+      var b = pair[0]; if (!b) return;
+      var s = (pair[1] === m) ? on : off;
+      b.style.background = s[0]; b.style.borderColor = s[1]; b.style.color = s[2];
+    });
+    if (secCookie) secCookie.style.display = (m === 'cookie') ? 'flex' : 'none';
+    if (secBrowser) secBrowser.style.display = (m === 'browser') ? 'flex' : 'none';
+    if (secExt) secExt.style.display = (m === 'extension') ? 'flex' : 'none';
+  }
+
+  if (btnTabCookie) btnTabCookie.addEventListener('click', () => setMethod('cookie'));
+  if (btnTabBrowser) btnTabBrowser.addEventListener('click', () => setMethod('browser'));
+  if (btnTabExt) btnTabExt.addEventListener('click', () => setMethod('extension'));
+
+  // Option ③: mở browser kèm extension GetCookie → tự bắt cookie qua CDP → điền vào ô "Nhập Cookie" để duyệt.
+  if (btnOpenExtCookie) {
+    btnOpenExtCookie.addEventListener('click', async () => {
+      if (!window.api || !window.api.grabCookieViaExtension) { alert('Chức năng chưa sẵn sàng — mở lại app.'); return; }
+      const proxyEl = document.getElementById('accountModalProxy');
+      const proxy = proxyEl ? proxyEl.value.trim() : '';
+      btnOpenExtCookie.disabled = true;
+      if (extStatus) { extStatus.style.color = 'var(--brand-cyan)'; extStatus.innerText = 'Đang mở trình duyệt + Extension — hãy đăng nhập nick trên cửa sổ mới...'; }
+      try {
+        const res = await window.api.grabCookieViaExtension(selectedPlatform, proxy);
+        const cookieStr = (res && res.cookie) ? res.cookie : '';
+        if (!cookieStr) throw new Error('Chưa lấy được cookie (có thể chưa đăng nhập xong).');
+        const cookieInput = document.getElementById('accountModalCookieInput');
+        if (cookieInput) cookieInput.value = cookieStr;
+        setMethod('cookie');
+        alert('Đã lấy cookie' + (res.displayName ? ' (' + res.displayName + ')' : '') + ' và điền vào ô. Kiểm tra rồi bấm "Xác nhận kết nối".');
+      } catch (err) {
+        if (extStatus) { extStatus.style.color = 'var(--danger-color)'; extStatus.innerText = 'Lỗi: ' + (err && err.message ? err.message : err); }
+      } finally {
+        btnOpenExtCookie.disabled = false;
       }
-      if (secCookie) secCookie.style.display = 'flex';
-      if (secBrowser) secBrowser.style.display = 'none';
     });
   }
 
-  if (btnTabBrowser) {
-    btnTabBrowser.addEventListener('click', () => {
-      activeMethod = 'browser';
-      btnTabBrowser.style.background = 'rgba(255,35,157,0.18)';
-      btnTabBrowser.style.borderColor = 'var(--primary-accent)';
-      btnTabBrowser.style.color = '#fff';
-      if (btnTabCookie) {
-        btnTabCookie.style.background = 'transparent';
-        btnTabCookie.style.borderColor = 'var(--border-color)';
-        btnTabCookie.style.color = 'var(--text-muted)';
-      }
-      if (secBrowser) secBrowser.style.display = 'flex';
-      if (secCookie) secCookie.style.display = 'none';
-    });
-  }
 
-  
   // Live status log for modal
   if (window.api && window.api.onLog) {
     window.api.onLog((text) => {
@@ -812,11 +828,13 @@ function initAddAccountModal() {
       const proxyEl = document.getElementById('accountModalProxy');
       const proxy = proxyEl ? proxyEl.value.trim() : '';
 
-      if (activeMethod === 'cookie') {
+      if (activeMethod === 'cookie' || activeMethod === 'extension') {
         const cookieInput = document.getElementById('accountModalCookieInput');
         const cookieData = cookieInput ? cookieInput.value.trim() : '';
         if (!cookieData) {
-          alert('Vui lòng dán Cookie hợp lệ!');
+          alert(activeMethod === 'extension'
+            ? 'Chưa có cookie — bấm "🧩 Mở trình duyệt + Extension để lấy cookie" trước, hoặc dán tay ở tab "1. Nhập Cookie".'
+            : 'Vui lòng dán Cookie hợp lệ!');
           return;
         }
         try {

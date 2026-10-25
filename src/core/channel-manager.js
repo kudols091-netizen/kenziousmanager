@@ -119,6 +119,23 @@ class ChannelManager {
     }
   }
 
+  // Ghép mảng cookie (từ CDP) thành chuỗi header "name=value; ..." theo đúng domain nền tảng,
+  // để điền vào ô "Dán Cookie" (option ③ Lấy cookie bằng Extension).
+  serializeCookies(cookies, platform) {
+    const domains = {
+      facebook: ['facebook.com'], instagram: ['instagram.com'], tiktok: ['tiktok.com'],
+      youtube: ['youtube.com', 'google.com'], threads: ['threads.net', 'instagram.com'],
+      zalo: ['zalo.me'], shopee: ['shopee.vn']
+    }[String(platform || '').toLowerCase()] || [];
+    const seen = {};
+    return (cookies || [])
+      .filter(c => c && c.name)
+      .filter(c => !domains.length || domains.some(d => String(c.domain || '').includes(d)))
+      .filter(c => { if (seen[c.name]) return false; seen[c.name] = 1; return true; })
+      .map(c => c.name + '=' + c.value)
+      .join('; ');
+  }
+
   maskToken(token) {
     if (!token || typeof token !== 'string') return '';
     if (token.startsWith('EAAB') && token.length > 16) {
@@ -591,6 +608,17 @@ class ChannelManager {
 
             if (detectedAvatar) {
               avatar = detectedAvatar;
+            }
+
+            // Option ③ "Lấy cookie bằng Extension": chỉ trả chuỗi cookie về ô dán để user duyệt + bấm Xác nhận,
+            // KHÔNG tự lưu account (khác option ② tự lưu). Dùng lại toàn bộ cơ chế mở browser + extension + CDP ở trên.
+            if (options.returnCookieOnly) {
+              const cookieStr = this.serializeCookies(currentCookies, platform);
+              await browser.close().catch(() => {});
+              this.activeBrowsers.delete(accountId);
+              onStatusUpdate('Đã lấy cookie — đang điền vào ô dán để bạn kiểm tra.');
+              resolve({ cookie: cookieStr, cookies: currentCookies, displayName, uid, token: token || '' });
+              return;
             }
 
             // Cookie chỉ lưu (đã mã hoá) trong accounts.json — không ghi bản sao plaintext vào profile nữa

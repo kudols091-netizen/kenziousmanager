@@ -391,6 +391,10 @@ ipcMain.handle('channel:importCookies', async (e, platform, cookies, proxy, name
   return sanitizeAccount(acc);
 });
 
+ipcMain.handle('channel:grabCookieViaExtension', async (e, platform, proxy, options) => {
+  // Option ③: mở browser kèm extension GetCookie, tự bắt cookie qua CDP rồi TRẢ chuỗi cookie về ô dán (không tự lưu).
+  return channelManager.interactiveLogin(platform, proxy, (msg) => sendLog(msg), Object.assign({ returnCookieOnly: true }, options || {}));
+});
 ipcMain.handle('channel:interactiveLogin', async (e, platform, proxy, options) => {
   const acc = await channelManager.interactiveLogin(platform, proxy, (msg) => sendLog(msg), options);
   syncIgCookieFromAccount(acc);

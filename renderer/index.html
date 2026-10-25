@@ -2533,6 +2533,7 @@ https://www.facebook.com/reel/..."></textarea>
           <div style="display: flex; gap: 10px; margin-top: 6px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
             <button class="btn btn-secondary btn-sm" id="btnTabImportCookie" style="background: rgba(255,35,157,0.18); border-color: var(--primary-accent); color: #fff;">1. Nhập Cookie</button>
             <button class="btn btn-secondary btn-sm" id="btnTabInteractiveLogin">2. Đăng nhập trực quan (Chrome / Chromium)</button>
+            <button class="btn btn-secondary btn-sm" id="btnTabExtensionCookie">3. Lấy cookie bằng Extension</button>
           </div>
 
           <!-- Section 1: Cookie Import -->
@@ -2550,6 +2551,17 @@ https://www.facebook.com/reel/..."></textarea>
               </p>
             </div>
             <div id="loginStatusFeedback" style="font-size: 13px; color: var(--brand-cyan); font-weight: 500;"></div>
+          </div>
+
+          <!-- Section 3: Lấy cookie bằng Extension GetCookie -->
+          <div id="sectionExtensionCookie" style="display: none; flex-direction: column; gap: 10px; margin-top: 10px;">
+            <div style="padding: 14px; background: rgba(153,80,250,0.08); border: 1px solid rgba(153,80,250,0.28); border-radius: var(--radius-md);">
+              <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                Mở trình duyệt có sẵn <b>Extension Kenzious Get Cookie</b> (dùng chung Proxy ở trên). Bạn đăng nhập nick — có thể bấm popup extension để kiểm tra. Khi đã đăng nhập, app <b>tự lấy cookie và điền vào ô "Nhập Cookie"</b> để bạn duyệt rồi bấm <b>Xác nhận kết nối</b>.
+              </p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnOpenExtensionCookie" style="align-self: flex-start;">🧩 Mở trình duyệt + Extension để lấy cookie</button>
+            <div id="extCookieStatusFeedback" style="font-size: 13px; color: var(--brand-cyan); font-weight: 500;"></div>
           </div>
         </div>
 
