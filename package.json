@@ -1,6 +1,6 @@
 {
   "name": "kenzious-reel-v2",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Kenzious Reel v2 — All-In-One AI Video Studio, Auto Reup & Multi-Channel Publisher",
   "main": "src/main.js",
   "scripts": {
