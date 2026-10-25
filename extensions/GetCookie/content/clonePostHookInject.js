@@ -1,0 +1,1 @@
+!function(){"use strict";if(!globalThis.__zookitClonePostHookInjected){globalThis.__zookitClonePostHookInjected=!0;try{const o=document.createElement("script");o.src=chrome.runtime.getURL("content/clonePostHook.js"),o.async=!1,(document.documentElement||document.head||document.body).appendChild(o),o.remove()}catch(o){}}}();

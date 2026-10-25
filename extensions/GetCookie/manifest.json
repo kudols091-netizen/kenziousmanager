@@ -1,94 +1,53 @@
 {
-  "manifest_version": 3,
-  "name": "Kenzious Get Cookie",
-  "version": "1.0.0",
-  "description": "Tiện ích mở rộng chuyên nghiệp Kenzious: Get & Import Cookie, Quét UID Facebook, Clone Post, Auto tương tác và trích xuất Token Facebook Ads / Pancake.",
-  "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "action": {
-    "default_popup": "popup/popup.html",
-    "default_icon": {
+   "action": {
+      "default_icon": {
+         "128": "icons/icon128.png",
+         "16": "icons/icon16.png",
+         "32": "icons/icon32.png",
+         "48": "icons/icon48.png"
+      },
+      "default_popup": "popup.html",
+      "default_title": "Kenzious Get Cookie"
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [ {
+      "js": [ "content/clonePostHookInject.js" ],
+      "matches": [ "*://*.facebook.com/*", "*://facebook.com/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "content/clonePostTimeGrab.js", "content/clonePostBag.js", "content/clonePostPermalinkBtn.js", "content/clonePostReelBtn.js" ],
+      "matches": [ "*://*.facebook.com/*", "*://facebook.com/*" ],
+      "run_at": "document_end"
+   }, {
+      "js": [ "content/tuongTacIcons.js", "content/tuongTacState.js", "content/tuongTacStats.js", "content/tuongTacModals.js", "content/tuongTacIdentity.js", "content/tuongTacNav.js", "content/tuongTacComment.js", "content/tuongTacFeed.js", "content/tuongTacReels.js", "content/tuongTacGroups.js", "content/tuongTacEngine.js", "content/tuongTacSidebarUi.js", "content/tuongTacSidebar.js", "content/tuongTacGate.js", "content/clonePostDetect.js", "content/clonePostDomScrape.js", "content/clonePostPermalink.js", "content/clonePostNet.js", "content/clonePostStore.js", "content/clonePostBridge.js", "content/clonePostLink.js", "content/clonePostResolve.js", "content/clonePostModalTargets.js", "content/clonePostModalProcess.js", "content/clonePostModalMedia.js", "content/clonePostModalReview.js", "content/clonePostModalUi.js", "content/clonePostModal.js", "content/clonePostShareBtnBridge.js", "content/clonePostPublishGql.js", "content/clonePostPublishVideo.js", "content/clonePostPublishGqlGroup.js", "content/clonePostPublishGqlTargets.js", "content/clonePostGate.js" ],
+      "matches": [ "*://*.facebook.com/*", "*://facebook.com/*" ],
+      "run_at": "document_idle"
+   } ],
+   "declarative_net_request": {
+      "rule_resources": [ {
+         "enabled": true,
+         "id": "ruleset_1",
+         "path": "rules.json"
+      } ]
+   },
+   "description": "Hỗ trợ Kenzious với Facebook: cookie phiên, ID/UID, convert link, token Ads/Pancake và công cụ thao tác nội dung FB.",
+   "host_permissions": [ "\u003Call_urls>", "*://*.facebook.com/*", "https://graph.facebook.com/*", "*://facebook.com/*", "https://adsmanager.facebook.com/*", "https://business.facebook.com/*", "https://pancake.vn/*", "https://*.pancake.vn/*" ],
+   "icons": {
+      "128": "icons/icon128.png",
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    },
-    "default_title": "Kenzious Get Cookie"
-  },
-  "background": {
-    "service_worker": "background/service_worker.js"
-  },
-  "permissions": [
-    "cookies",
-    "storage",
-    "tabs",
-    "activeTab",
-    "scripting",
-    "clipboardRead",
-    "clipboardWrite"
-  ],
-  "host_permissions": [
-    "*://*.facebook.com/*",
-    "*://*.messenger.com/*",
-    "*://*.chatgpt.com/*",
-    "*://*.openai.com/*",
-    "*://*.gemini.google.com/*",
-    "*://*.x.com/*",
-    "*://*.twitter.com/*",
-    "*://*.grok.com/*",
-    "*://*.tiktok.com/*",
-    "*://*.youtube.com/*",
-    "*://*.instagram.com/*",
-    "*://*.threads.net/*",
-    "https://adsmanager.facebook.com/*",
-    "https://*.pancake.vn/*",
-    "<all_urls>"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "*://*.facebook.com/*",
-        "*://*.messenger.com/*"
-      ],
-      "js": [
-        "utils/xlsx_exporter.js",
-        "content/fb_id_detector.js",
-        "content/clone_post_hook.js",
-        "content/clone_post_modal.js",
-        "content/scan_uid_modal.js",
-        "content/auto_tuong_tac_sidebar.js"
-      ],
-      "css": [
-        "content/modals.css"
-      ],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content/cookie_helper.js"
-      ],
-      "run_at": "document_start"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "icons/*",
-        "popup/*",
-        "content/modals.css"
-      ],
-      "matches": [
-        "*://*.facebook.com/*",
-        "*://*.messenger.com/*",
-        "<all_urls>"
-      ]
-    }
-  ]
+      "48": "icons/icon48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvwbmPMd8jOAQwzYht8w3ZQqy++AYA+WrrdIL59GFrtDbFFfr2rRoX4WkYMBiuDcQ0psLu0qcwUCKING/NR1LkOgKsY0Tpou1T1mIpIVzCN2XZ+MHrCs+6sLhjc5Tb8r2B53BRMIojbkqV8OGLvWCg7bisr8G/9LHixvX9SQxXQhCbfk16By2bqedBhi8dW+DWnUUZlaPUDcUeCZpzUZgiM7phoGJmraEhPCenENLtBVkCBRXdzfnss6eo9W33MyXBFIaIVJilbYxIflw3tqJhK/m29XiQsM2kRMAf/1neyWJePcxSpWBwu5EG6a0S4FDW9KVmkwa3MSRwClqnbznZQIDAQAB",
+   "manifest_version": 3,
+   "name": "Kenzious Get Cookie",
+   "permissions": [ "cookies", "tabs", "storage", "clipboardRead", "webRequest", "scripting", "activeTab", "declarativeNetRequest" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.0",
+   "web_accessible_resources": [ {
+      "matches": [ "\u003Call_urls>" ],
+      "resources": [ "dist/listLinkModal.css", "dist/channelVideoModal.css", "dist/importCookieModal.css", "dist/scanUidModal.css", "dist/tuongTacSidebar.css", "dist/clonePostModal.css", "dist/getAllPostFbModal.css", "content/clonePostHook.js", "content/pageHook.js" ]
+   } ]
 }

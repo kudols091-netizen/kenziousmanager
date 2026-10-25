@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kenzious Get Cookie</title>
+    <link rel="stylesheet" href="dist/popup.css" />
+  </head>
+  <body
+    class="relative box-border w-[min(100vw,540px)] min-w-[440px] max-w-[540px] overflow-hidden bg-zookit-surface text-slate-100 antialiased"
+  >
+    <div id="appRoot" class="flex flex-col overflow-hidden">
+      <!-- Trang chủ -->
+      <div id="viewHome" class="flex flex-col px-5 pb-2.5 pt-3">
+        <header class="mb-2.5 flex shrink-0 items-center gap-2.5 border-b border-zookit-border pb-2.5">
+          <img src="icons/icon48.png" alt="" width="36" height="36" class="rounded-lg" />
+          <div>
+            <h1 id="appHeadingTitle" class="text-base font-semibold tracking-tight text-white">Kenzious Get Cookie</h1>
+            <p class="text-xs text-slate-400">Tiện ích hỗ trợ sử dụng công cụ Kenzious và FB</p>
+          </div>
+        </header>
+
+        <nav class="mt-0.5 flex flex-col gap-2" id="actionGrid" aria-label="Chức năng">
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              data-action="cookies"
+              class="action-btn group flex min-h-0 flex-col items-stretch justify-center gap-1 rounded-xl border-2 border-orange-500/45 bg-gradient-to-br from-orange-950/80 to-zookit-card px-3 py-2.5 text-left shadow-md shadow-orange-900/15 transition hover:border-orange-400/60 hover:from-orange-900/50 hover:to-slate-800/90 focus:outline-none focus:ring-2 focus:ring-orange-400/70"
+            >
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center self-start rounded-lg bg-orange-500/20 text-orange-300" aria-hidden="true">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+              </span>
+              <span class="text-sm font-black leading-snug text-white">Get Cookie</span>
+              <span class="text-[10px] leading-tight text-slate-300">Nhận diện ChatGPT / Gemini / Grok / YouTube / TikTok…</span>
+            </button>
+
+            <button
+              type="button"
+              data-action="importCookies"
+              class="action-btn group flex min-h-0 flex-col items-stretch justify-center gap-1 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-950/70 to-zookit-card px-3 py-2.5 text-left transition hover:border-amber-400/55 hover:from-amber-900/45 focus:outline-none focus:ring-2 focus:ring-amber-400/60"
+            >
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center self-start rounded-lg bg-amber-500/20 text-amber-300" aria-hidden="true">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </span>
+              <span class="text-sm font-bold leading-snug text-white">Import Cookie</span>
+              <span class="text-[10px] leading-tight text-slate-400">Dán cookie hoặc import file cookie vào đây để Set Cookie mới</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            data-action="channelVideos"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-teal-500/40 bg-gradient-to-br from-teal-950/70 to-zookit-card px-4 py-3 text-left transition hover:border-teal-400/55 hover:from-teal-900/45 focus:outline-none focus:ring-2 focus:ring-teal-400/60"
+          >
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-teal-500/20 text-teal-300" aria-hidden="true">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Get List Video Trong Kênh</span>
+              <span class="text-[11px] leading-snug text-slate-400"
+                >Quét kênh Douyin / TikTok / YT Shorts / IG / FB Reels / Red Note / Bilibili</span
+              >
+            </span>
+            <span class="text-xl text-teal-400/80 transition group-hover:text-teal-300" aria-hidden="true">→</span>
+          </button>
+
+          <button
+            type="button"
+            data-action="getAllPostFb"
+            data-requires-fb="1"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-pink-500/40 bg-gradient-to-br from-pink-950/70 to-zookit-card px-4 py-3 text-left transition hover:border-pink-400/55 hover:from-pink-900/45 focus:outline-none focus:ring-2 focus:ring-pink-400/60 disabled:pointer-events-none disabled:opacity-40"
+          >
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-pink-500/20 text-pink-300" aria-hidden="true">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Get All Post FB</span>
+              <span class="text-[11px] leading-snug text-slate-400">Quét bài Profile / Fanpage / Group → xuất file dữ liệu</span>
+            </span>
+            <span class="text-xl text-pink-400/80 transition group-hover:text-pink-300" aria-hidden="true">→</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              data-action="fbId"
+              data-requires-fb="1"
+              class="action-btn group flex min-h-0 flex-col items-stretch justify-center gap-1 rounded-xl border border-zookit-border bg-zookit-card px-3 py-2.5 text-left transition hover:border-sky-500/50 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-sky-500/60 disabled:pointer-events-none disabled:opacity-40"
+            >
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center self-start rounded-lg bg-sky-500/15 text-sky-300" aria-hidden="true">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                </svg>
+              </span>
+              <span class="text-sm font-bold leading-snug text-white">GET ID FB</span>
+              <span class="text-[10px] leading-tight text-slate-500">ID từ trang Facebook đang mở</span>
+            </button>
+
+            <button
+              type="button"
+              data-action="scanPageUid"
+              data-requires-fb="1"
+              class="action-btn group flex min-h-0 flex-col items-stretch justify-center gap-1 rounded-xl border border-zookit-border bg-zookit-card px-3 py-2.5 text-left transition hover:border-purple-500/50 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-purple-500/60 disabled:pointer-events-none disabled:opacity-40"
+            >
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center self-start rounded-lg bg-purple-500/15 text-purple-300" aria-hidden="true">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </span>
+              <span class="text-sm font-bold leading-snug text-white">Quét UID trang này</span>
+              <span class="text-[10px] leading-tight text-slate-500">Quét UID từ trang Facebook đang mở</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            data-action="utilities"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-zookit-border bg-zookit-card px-4 py-3 text-left transition hover:border-slate-500/50 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-slate-500/50"
+          >
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-500/15 text-slate-300" aria-hidden="true">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Tiện ích khác</span>
+              <span class="text-[11px] leading-snug text-slate-400">Auto Tương Tác, Clone Post, Token</span>
+            </span>
+            <span class="text-xl text-slate-400/80 transition group-hover:text-slate-300" aria-hidden="true">→</span>
+          </button>
+        </nav>
+
+        <footer class="mt-3 shrink-0 border-t border-zookit-border pt-2.5 text-center text-[11px] leading-snug text-slate-300">
+          Phát triển bởi SVNTEAM, 1 sản phẩm của
+          <a
+            href="https://kenzious.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
+            >Kenzious</a
+          >
+        </footer>
+      </div>
+
+      <!-- Tiện ích khác -->
+      <div id="viewUtilities" class="hidden flex-col px-5 pb-2.5 pt-3">
+        <header class="mb-2.5 flex shrink-0 items-center gap-2 border-b border-zookit-border pb-2.5">
+          <button
+            type="button"
+            id="utilitiesBackBtn"
+            class="flex items-center gap-2 rounded-lg border border-zookit-border bg-zookit-card px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+          >
+            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Quay lại
+          </button>
+        </header>
+
+        <h2 class="mb-2 text-base font-semibold text-white">Tiện ích khác</h2>
+
+        <nav class="flex flex-col gap-2" id="utilitiesGrid" aria-label="Tiện ích khác">
+          <button
+            type="button"
+            data-action="autoTuongTacFb"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-zookit-border bg-zookit-card px-4 py-3 text-left transition hover:border-sky-500/45 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+          >
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/15 text-sky-300" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Auto Tương Tác FB</span>
+              <span class="text-[11px] leading-snug text-slate-400">Auto tương tác nhanh, tăng uy tín cho tài khoản</span>
+            </span>
+            <span class="text-xl text-sky-400/80 transition group-hover:text-sky-300" aria-hidden="true">→</span>
+          </button>
+
+          <button
+            type="button"
+            data-action="clonePost"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-zookit-border bg-zookit-card px-4 py-3 text-left transition hover:border-sky-500/45 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+          >
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/15 text-sky-300" aria-hidden="true">
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 2H6a2 2 0 00-2 2v10h2V4h7V2zm3 4H9a2 2 0 00-2 2v10a2 2 0 002 2h7a2 2 0 002-2V8a2 2 0 00-2-2zm0 12H9V8h7v10z" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Clone Post</span>
+              <span class="text-[11px] leading-snug text-slate-400">Clone bài viết nhanh lên tường</span>
+            </span>
+            <span class="text-xl text-sky-400/80 transition group-hover:text-sky-300" aria-hidden="true">→</span>
+          </button>
+
+          <button
+            type="button"
+            data-action="linkListToId"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-zookit-border bg-zookit-card px-4 py-3 text-left transition hover:border-rose-500/45 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-rose-500/45"
+          >
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/15 text-rose-300" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h14M9 14l2 2 4-4" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Convert List ID FB</span>
+              <span class="text-[11px] leading-snug text-slate-400">Modal giữa trang web</span>
+            </span>
+            <span class="text-xl text-rose-400/80 transition group-hover:text-rose-300" aria-hidden="true">→</span>
+          </button>
+
+          <button
+            type="button"
+            data-action="adsToken"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-zookit-border bg-zookit-card px-4 py-3 text-left transition hover:border-emerald-500/45 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+          >
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Get Token FB</span>
+              <span class="text-[11px] leading-snug text-slate-400">Ads Manager access token</span>
+            </span>
+            <span class="text-xl text-emerald-400/80 transition group-hover:text-emerald-300" aria-hidden="true">→</span>
+          </button>
+
+          <button
+            type="button"
+            data-action="pancakeToken"
+            class="action-btn group flex w-full items-center gap-3 rounded-xl border border-zookit-border bg-zookit-card px-4 py-3 text-left transition hover:border-violet-500/45 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+          >
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-violet-300" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-base font-bold tracking-tight text-white">Get Token PanCake</span>
+              <span class="text-[11px] leading-snug text-slate-400">Captured from pancake.vn</span>
+            </span>
+            <span class="text-xl text-violet-400/80 transition group-hover:text-violet-300" aria-hidden="true">→</span>
+          </button>
+        </nav>
+
+        <footer class="mt-3 shrink-0 border-t border-zookit-border pt-2.5 text-center text-[11px] leading-snug text-slate-300">
+          Phát triển bởi SVNTEAM, 1 sản phẩm của
+          <a
+            href="https://kenzious.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
+            >Kenzious</a
+          >
+        </footer>
+      </div>
+
+      <!-- Clone Post -->
+      <div id="viewClonePost" class="hidden flex-col px-5 pb-2.5 pt-3">
+        <header class="mb-2.5 flex shrink-0 items-center gap-2 border-b border-zookit-border pb-2.5">
+          <button
+            type="button"
+            id="clonePostBackBtn"
+            class="flex items-center gap-2 rounded-lg border border-zookit-border bg-zookit-card px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+          >
+            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Quay lại
+          </button>
+        </header>
+
+        <h2 class="mb-1 text-base font-semibold text-white">Clone Post</h2>
+        <p class="mb-3 text-[11px] leading-snug text-slate-400">
+          Đây là chức năng clone 1 bài viết nhanh để đăng lên tường
+        </p>
+
+        <div class="flex flex-col gap-2" id="clonePostToggles" aria-label="Cài đặt Clone Post">
+          <label class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-zookit-border bg-zookit-card px-4 py-3">
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="text-sm font-bold text-white">Hiện icon Clone Post</span>
+              <span class="text-[11px] text-slate-400">Icon góc trái dưới trên Facebook</span>
+            </span>
+            <span class="zk-switch" aria-hidden="true">
+              <input type="checkbox" role="switch" data-clone-post="enabled" class="zk-switch-input" checked />
+              <span class="zk-switch-ui">
+                <span class="zk-switch-track"></span>
+                <span class="zk-switch-thumb"></span>
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <footer class="mt-3 shrink-0 border-t border-zookit-border pt-2.5 text-center text-[11px] leading-snug text-slate-300">
+          Phát triển bởi SVNTEAM, 1 sản phẩm của
+          <a
+            href="https://kenzious.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
+            >Kenzious</a
+          >
+        </footer>
+      </div>
+
+      <!-- Màn chức năng -->
+      <div id="viewFeature" class="hidden flex-col px-5 pb-2.5 pt-3">
+        <header class="mb-2.5 flex shrink-0 items-center gap-2 border-b border-zookit-border pb-2.5">
+          <button
+            type="button"
+            id="featureBackBtn"
+            class="flex items-center gap-2 rounded-lg border border-zookit-border bg-zookit-card px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+          >
+            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Quay lại
+          </button>
+        </header>
+
+        <h2 id="featureTitle" class="mb-2 text-base font-semibold text-white">Đang tải…</h2>
+
+        <div class="flex flex-col gap-2">
+          <div id="featureLoading" class="hidden flex flex-col items-center justify-center gap-3 py-6">
+            <div
+              class="h-10 w-10 animate-spin rounded-full border-2 border-slate-600 border-t-sky-400"
+              role="status"
+              aria-label="Đang xử lý"
+            ></div>
+            <p class="text-center text-sm text-slate-400">Đang xử lý, vui lòng đợi…</p>
+          </div>
+
+          <div id="featureError" class="hidden">
+            <p id="featureErrorText" class="rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-3 text-sm text-red-200"></p>
+          </div>
+
+          <div id="featureBody" class="hidden flex flex-col gap-2">
+            <p id="featureSubtitle" class="whitespace-pre-wrap text-xs text-slate-400"></p>
+
+            <div id="featureFbIdBlock" class="hidden flex flex-col gap-2">
+              <div
+                class="flex flex-nowrap items-center gap-2 rounded-xl border border-yellow-500/35 bg-slate-900/70 px-3 py-2.5"
+              >
+                <span
+                  id="featureFbIdValue"
+                  class="min-w-0 flex-1 select-all overflow-x-auto whitespace-nowrap font-mono text-2xl font-bold leading-tight tracking-tight text-yellow-400 sm:text-3xl"
+                ></span>
+                <button
+                  type="button"
+                  id="featureCopyIdBtn"
+                  class="inline-flex shrink-0 items-center justify-center rounded-lg bg-sky-600 p-2.5 text-white transition hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
+                  title="Sao chép"
+                  aria-label="Sao chép ID vào bộ nhớ tạm"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <p id="featureCopyHintFb" class="hidden text-center text-xs text-emerald-400" aria-live="polite">
+                Đã sao chép vào bộ nhớ tạm.
+              </p>
+            </div>
+
+            <div id="featureTokenBlock" class="flex flex-col gap-2">
+              <textarea
+                id="featureOutput"
+                readonly
+                rows="6"
+                class="min-h-[100px] w-full resize-none rounded-lg border border-zookit-border bg-zookit-surface px-3 py-2 font-mono text-xs leading-relaxed text-slate-200 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500/40"
+                spellcheck="false"
+              ></textarea>
+              <p id="featureCopyHint" class="hidden text-center text-xs text-emerald-400" aria-live="polite">Đã sao chép vào bộ nhớ tạm.</p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="featureActionsBar"
+          class="mt-3 flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-zookit-border pt-3"
+        >
+          <button
+            type="button"
+            id="featureDownloadBtn"
+            class="hidden rounded-lg border border-orange-500/50 bg-orange-950/60 px-4 py-2 text-sm font-semibold text-orange-100 transition hover:bg-orange-900/70 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+          >
+            Tải Cookie
+          </button>
+          <button
+            type="button"
+            id="featureCopyBtn"
+            class="hidden rounded-lg bg-sky-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
+          >
+            Sao chép
+          </button>
+          <button
+            type="button"
+            id="featureTestPancakeBtn"
+            class="hidden rounded-lg border border-violet-500/50 bg-violet-950/60 px-5 py-2 text-sm font-semibold text-violet-100 transition hover:bg-violet-900/70 focus:outline-none focus:ring-2 focus:ring-violet-400/50"
+          >
+            Test Token
+          </button>
+        </div>
+
+        <footer class="mt-2.5 shrink-0 text-center text-[11px] leading-snug text-slate-300">
+          Phát triển bởi SVNTEAM, 1 sản phẩm của
+          <a
+            href="https://kenzious.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
+            >Kenzious</a
+          >
+        </footer>
+      </div>
+    </div>
+
+    <div
+      id="toastHost"
+      class="pointer-events-none fixed bottom-4 left-0 right-0 z-[200] flex flex-col items-center gap-2 px-3"
+      aria-live="polite"
+    ></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

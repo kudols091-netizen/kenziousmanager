@@ -1,0 +1,1 @@
+!function(){"use strict";function e(){document.querySelectorAll("[data-zookit-cp-reel-bar]").forEach(function(e){e.remove()});var e=document.getElementById("zookit-cp-reel-style");e&&e.remove()}globalThis.__zookitCpReelBtn||(globalThis.__zookitCpReelBtn=!0,e(),setInterval(e,2500),new MutationObserver(e).observe(document.documentElement,{childList:!0,subtree:!0}))}();

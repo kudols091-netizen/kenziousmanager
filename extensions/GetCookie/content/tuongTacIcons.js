@@ -1,0 +1,1 @@
+!function(){"use strict";const o=["😀","😍","🔥","👍","❤️","🎉","✨","💯","🙏","😊","🥰","😎","👏","💪","🌟","💖","🤩","😁","🥳","💕","⭐","🫶","😇","🤗"];globalThis.__zookitTuongTacRandomIcon=function(){return o[Math.floor(Math.random()*o.length)]},globalThis.__zookitTuongTacIcons=o}();
