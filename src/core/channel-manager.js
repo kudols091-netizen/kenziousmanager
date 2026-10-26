@@ -113,6 +113,7 @@ class ChannelManager {
       case 'facebook': return 'https://www.facebook.com/';
       case 'instagram': return 'https://www.instagram.com/accounts/login/';
       case 'threads': return 'https://www.threads.net/login';
+      case 'pinterest': return 'https://www.pinterest.com/login/';
       case 'zalo': return 'https://video.zalo.me/';
       case 'shopee': return 'https://shopee.vn/buyer/login?next=https%3A%2F%2Faffiliate.shopee.vn%2F';
       default: return 'https://google.com';
@@ -125,7 +126,7 @@ class ChannelManager {
     const domains = {
       facebook: ['facebook.com'], instagram: ['instagram.com'], tiktok: ['tiktok.com'],
       youtube: ['youtube.com', 'google.com'], threads: ['threads.net', 'instagram.com'],
-      zalo: ['zalo.me'], shopee: ['shopee.vn']
+      pinterest: ['pinterest.com'], zalo: ['zalo.me'], shopee: ['shopee.vn']
     }[String(platform || '').toLowerCase()] || [];
     const seen = {};
     return (cookies || [])
@@ -532,6 +533,15 @@ class ChannelManager {
             if (hasSession) {
               loggedIn = true;
               displayName = `Threads_User`;
+            }
+          } else if (platform === 'pinterest') {
+            // Đăng nhập Pinterest: có _pinterest_sess (phiên) hoặc _auth=1
+            const hasSess = currentCookies.some(c => c.name === '_pinterest_sess' && c.value && c.value.length > 20);
+            const hasAuth = currentCookies.some(c => c.name === '_auth' && c.value === '1');
+            const onPin = allPages.some(p => p.url().includes('pinterest.com') && !p.url().includes('/login'));
+            if ((hasSess && hasAuth) || (hasSess && onPin)) {
+              loggedIn = true;
+              displayName = `Pinterest_User`;
             }
           } else if (platform === 'zalo') {
             const hasSek = currentCookies.some(c => c.name === 'zpw_sek');

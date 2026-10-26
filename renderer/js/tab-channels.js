@@ -706,6 +706,12 @@ function initAddAccountModal() {
       color: '#ffffff',
       cookieHint: 'sessionid=...; csrftoken=...'
     },
+    pinterest: {
+      name: 'Pinterest',
+      sub: 'Ghim ảnh/video (Pin) lên các Board Pinterest',
+      color: '#e60023',
+      cookieHint: 'csrftoken=...; _pinterest_sess=...; _auth=1'
+    },
     zalo: {
       name: 'Zalo Video',
       sub: 'Đăng video lên kênh Zalo Video Creator (video.zalo.me)',
