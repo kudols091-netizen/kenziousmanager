@@ -21,7 +21,7 @@ const { SocksProxyAgent } = require('socks-proxy-agent');
 
 const SUPPORTED_PROTOCOLS = ['http', 'https', 'socks4', 'socks5'];
 // Chỉ các host này được nhận cookie / token của tài khoản
-const CREDENTIAL_DOMAINS = ['facebook.com', 'messenger.com', 'instagram.com', 'workplace.com'];
+const CREDENTIAL_DOMAINS = ['facebook.com', 'messenger.com', 'instagram.com', 'workplace.com', 'pinterest.com'];
 const SOCKS_AUTH_UNSUPPORTED =
   'Chromium không hỗ trợ proxy SOCKS có mật khẩu. Hãy dùng proxy HTTP có mật khẩu, hoặc SOCKS không mật khẩu.';
 

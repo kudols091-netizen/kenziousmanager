@@ -12,6 +12,7 @@
 const publisherDb = require('./publisher-db');
 const storage = require('./storage');
 const facebookPoster = require('./facebook-reels-poster');
+const pinterestPoster = require('./pinterest-poster');
 const fs = require('fs');
 const path = require('path');
 
@@ -621,10 +622,19 @@ class BatchPublisherService {
           // Pre-flight: Giải phóng profile lock trước khi mở trình duyệt
           this._ensureProfileUnlocked(account);
 
-          // Execute through Playwright/Puppeteer driver
-          const result = await facebookPoster.uploadReel(item, account, (p) => {
-            onProgress({ eventId: item.id, accountId, status: p.phase, message: p.message });
-          });
+          // Định tuyến theo nền tảng: Pinterest đăng qua API nội bộ (không mở browser); còn lại dùng driver Playwright.
+          let result;
+          if ((account.platform || '') === 'pinterest') {
+            const pres = await pinterestPoster.publishPin(item, account, (p) => {
+              onProgress({ eventId: item.id, accountId, status: p.phase || 'uploading', message: p.message });
+            });
+            if (!pres.ok) throw new Error(pres.error || 'Đăng Pinterest thất bại');
+            result = { status: 'success', url: pres.id ? ('https://www.pinterest.com/pin/' + pres.id + '/') : '' };
+          } else {
+            result = await facebookPoster.uploadReel(item, account, (p) => {
+              onProgress({ eventId: item.id, accountId, status: p.phase, message: p.message });
+            });
+          }
 
           this.destinationCooldowns.set(destinationKey, Date.now());
 
