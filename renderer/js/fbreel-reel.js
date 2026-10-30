@@ -2219,7 +2219,7 @@
     try {
       var ck = String(c.cookie).replace(/;?\s*i_user=\d+/g, '') + '; i_user=' + pageId;
       var t = await fbDoc('https://www.facebook.com/' + pageId + '/', ck);
-      a.dtsg = (t.match(/DTSGInitialData"[^}]*?"token":"([^"]+)"/) || t.match(/"dtsg":\{"token":"([^"]+)"/) || [])[1] || '';
+      a.dtsg = grabDtsg(t);
       a.lsd = (t.match(/"LSD",\[\],\{"token":"([^"]+)"/) || [])[1] || '';
       // Trong ngữ cảnh đóng-vai-page, actorID/userID FB trả về = id page.
       a.actorID = (t.match(/"actorID":"(\d+)"/) || t.match(/"userID":"(\d+)"/) || [])[1] || pageId;
@@ -3850,6 +3850,16 @@
   var TRASH_DOC = '26146132388368957', TRASH_FN = 'useCometTrashPostMutation';
   function b64u(s) { try { return btoa(unescape(encodeURIComponent(s))); } catch (e) { return btoa(s); } }
   function jazoest(dtsg) { var n = 0; for (var i = 0; i < dtsg.length; i++) n += dtsg.charCodeAt(i); return '2' + n; }
+  // Lấy fb_dtsg từ HTML trang FB — thử nhiều định dạng (FB đổi qua lại DTSGInitData / DTSGInitialData / form cũ).
+  function grabDtsg(t) {
+    t = String(t || '');
+    var m = t.match(/DTSGInit(?:ial)?Data",\[\],\{"token":"([^"]+)"/)   // ["DTSGInitData",[],{"token":"..."}] (dạng hiện tại)
+         || t.match(/DTSGInit(?:ial)?Data"[^}]*?"token":"([^"]+)"/)      // DTSGInitialData..."token":"..."
+         || t.match(/"dtsg":\s*\{\s*"token":"([^"]+)"/)                   // "dtsg":{"token":"..."}
+         || t.match(/name="fb_dtsg"\s+value="([^"]+)"/)                   // form HTML cũ
+         || t.match(/"async_get_token":"([^"]+)"/);                       // fallback cuối
+    return m ? m[1] : '';
+  }
   function uuid4() { try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) { var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
   // Tải 1 trang FB ở dạng "document" (kèm Accept:text/html) để có post_id / DTSGInitialData / LSD.
   async function fbDoc(url, cookie, proxy) {
@@ -3865,7 +3875,7 @@
       var t = await fbDoc('https://www.facebook.com/' + s.id + '/', cookie, proxy);
       // actorId (id NPE để đóng vai) = userID mà FB trả khi tải chính trang Page (đã kiểm chứng đúng theo page).
       s.actorId = (t.match(/"userID":"(\d+)"/) || t.match(/"actorID":"(\d+)"/) || t.match(/"USER_ID":"(\d+)"/) || [])[1] || s.id;
-      s.dtsg = (t.match(/DTSGInitialData"[^}]*?"token":"([^"]+)"/) || t.match(/"dtsg":\{"token":"([^"]+)"/) || [])[1] || '';
+      s.dtsg = grabDtsg(t);
       s.lsd = (t.match(/"LSD",\[\],\{"token":"([^"]+)"/) || [])[1] || '';
       // doc_id mutation cảm xúc (nếu FB nhúng sẵn trong trang) để thả Love/Haha/… đóng-vai-Page.
       if (!s.reactDoc) s.reactDoc = (t.match(/CometUFIFeedbackReactMutation[\s\S]{0,600}?"id":"(\d{6,})"/) || t.match(/"(\d{6,})"[\s\S]{0,120}?CometUFIFeedbackReactMutation/) || [])[1] || '';
@@ -4034,9 +4044,14 @@
     if (!c.uid) { var mm = String(c.cookie).match(/c_user=(\d+)/); if (mm) c.uid = mm[1]; }
     try {
       var t = await fbDoc('https://www.facebook.com/', String(c.cookie).replace(/;?\s*i_user=\d+/g, ''));
-      c._udtsg = (t.match(/DTSGInitialData"[^}]*?"token":"([^"]+)"/) || t.match(/"dtsg":\{"token":"([^"]+)"/) || [])[1] || '';
+      c._udtsg = grabDtsg(t);
       c._ulsd = (t.match(/"LSD",\[\],\{"token":"([^"]+)"/) || [])[1] || '';
-      if (!c._udtsg) c._uauthErr = 'không lấy được dtsg (cookie hỏng?)';
+      if (!c._udtsg) {
+        // Phân biệt: cookie chết (FB trả trang login/checkpoint) vs trang hợp lệ nhưng không đọc được token.
+        c._uauthErr = /display:none[^>]*>Log In|name="email"[^>]*id="email"|\/checkpoint\/|"__isLoggedIn":false|login_form/i.test(t)
+          ? 'cookie hết hạn / chưa đăng nhập — lấy lại cookie nick này'
+          : 'không đọc được fb_dtsg từ trang FB (FB có thể đổi giao diện — báo dev)';
+      }
     } catch (e) { c._uauthErr = (e && e.message) || String(e); }
     return !!(c._udtsg && c.uid);
   }

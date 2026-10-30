@@ -129,7 +129,7 @@ class DestinationsManager {
       });
       if (!res.ok) return null;
       const html = await res.text();
-      const dtsgMatch = html.match(/"DTSGInitialData"[^>]*\{\s*"token"\s*:\s*"([^"]+)"/i) ||
+      const dtsgMatch = html.match(/DTSGInit(?:ial)?Data"[^>]*\{\s*"token"\s*:\s*"([^"]+)"/i) ||
                         html.match(/"token"\s*:\s*"([A-Za-z0-9_-]+:[A-Za-z0-9_-]+)"/i) ||
                         html.match(/name="fb_dtsg"\s+value="([^"]+)"/i);
       return dtsgMatch ? dtsgMatch[1] : null;
