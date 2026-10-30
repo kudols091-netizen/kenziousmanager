@@ -187,6 +187,7 @@ class FacebookToolkit {
           headless: true,
           proxy: fbAccount.proxy
         });
+        let token = '';
         try {
         await page.goto('https://adsmanager.facebook.com/adsmanager/', {
           waitUntil: 'domcontentloaded',
@@ -197,7 +198,7 @@ class FacebookToolkit {
         await page.waitForTimeout(3000);
 
         const pageContent = await page.content();
-        let token = this.parseEaabTokenFromHtml(pageContent);
+        token = this.parseEaabTokenFromHtml(pageContent);
 
         if (!token) {
           token = await page.evaluate(() => {

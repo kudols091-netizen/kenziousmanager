@@ -452,8 +452,8 @@ ipcMain.handle('torrent:cancel', (e, infoHash) => {
   return torrentManager.cancelDownload(infoHash);
 });
 
-ipcMain.handle('publisher:addToQueue', (e, videoPath, accounts, options) => {
-  return publisher.addVideosToQueue([videoPath], options.gapMinutes, accounts);
+ipcMain.handle('publisher:addToQueue', (e, videoPath, accounts, options = {}) => {
+  return publisher.addVideosToQueue([videoPath], (options || {}).gapMinutes, accounts);
 });
 
 ipcMain.handle('publisher:addVideosToQueue', (e, videoPaths, gapMinutes, accounts) => {

@@ -102,6 +102,7 @@ class AudioSeparator {
         if (code === 0 && fs.existsSync(tempWav)) resolve();
         else reject(new Error(`Trích xuất audio thất bại: ${stderr}`));
       });
+      proc.on('error', err => reject(new Error('Không chạy được ffmpeg (thiếu bin/ffmpeg.exe?): ' + err.message)));
     });
 
     const vocalsDest = path.join(outputDir, 'vocals.wav');
@@ -174,6 +175,7 @@ class AudioSeparator {
         if (code === 0) resolve();
         else reject(new Error(`Demucs lỗi (code ${code}): ${stderr}`));
       });
+      proc.on('error', err => reject(new Error('Không chạy được Demucs/python: ' + err.message)));
     });
 
     // Locate the output files in demucs directory structure
@@ -193,6 +195,11 @@ class AudioSeparator {
     try {
       fs.rmSync(demucsOutputDir, { recursive: true, force: true });
     } catch (e) {}
+
+    // Demucs code 0 nhưng không ra file (đổi cấu trúc thư mục?) -> ném lỗi để separateAudio rơi về FFmpeg fallback, tránh trả path rác.
+    if (!fs.existsSync(vocalsDest) || !fs.existsSync(noVocalsDest)) {
+      throw new Error('Demucs không tạo được file tách (vocals/no_vocals).');
+    }
   }
 
   /**
@@ -214,6 +221,7 @@ class AudioSeparator {
       ];
       const proc = track(spawn(ffmpeg, args, { windowsHide: true }));
       proc.on('close', code => (code === 0 ? resolve() : reject(new Error('Tạo no_vocals fallback thất bại'))));
+      proc.on('error', err => reject(new Error('Không chạy được ffmpeg (fallback no_vocals): ' + err.message)));
     });
 
     // 2. vocals.wav: Bandpass vocal extraction filter (isolates human speech fundamental frequencies ~220Hz - 3400Hz)
@@ -228,6 +236,7 @@ class AudioSeparator {
       ];
       const proc = track(spawn(ffmpeg, args, { windowsHide: true }));
       proc.on('close', code => (code === 0 ? resolve() : reject(new Error('Tạo vocals fallback thất bại'))));
+      proc.on('error', err => reject(new Error('Không chạy được ffmpeg (fallback vocals): ' + err.message)));
     });
   }
 }

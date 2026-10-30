@@ -659,7 +659,7 @@ function renderChannelsList() {
     const acc = allConnectedAccounts.find(a => a.id === ch.accountId);
     if (!acc) return false;
     if (platformFilter !== 'all' && acc.platform !== platformFilter) return false;
-    if (query && !acc.displayName.toLowerCase().includes(query) && !acc.platform.toLowerCase().includes(query)) return false;
+    if (query && !(acc.displayName || '').toLowerCase().includes(query) && !(acc.platform || '').toLowerCase().includes(query)) return false;
     return true;
   });
 
@@ -781,7 +781,7 @@ function renderAddChannelModalList() {
 
   const filtered = allConnectedAccounts.filter(acc => {
     if (platform !== 'all' && acc.platform !== platform) return false;
-    if (search && !acc.displayName.toLowerCase().includes(search) && !acc.platform.toLowerCase().includes(search)) return false;
+    if (search && !(acc.displayName || '').toLowerCase().includes(search) && !(acc.platform || '').toLowerCase().includes(search)) return false;
     return true;
   });
 
@@ -1079,7 +1079,7 @@ async function handleStartOrPauseSession() {
   if (inputJMin && inputJMax) {
     currentJob.settings.intervalRandom = {
       min: Math.max(5, parseInt(inputJMin.value, 10) || 15),
-      max: Math.max(15, parseInt(inputJMax.value, 10) || 20)
+      max: Math.max(Math.max(5, parseInt(inputJMin.value, 10) || 15), parseInt(inputJMax.value, 10) || 20)
     };
   }
   if (inputTimeout) currentJob.settings.postTimeoutMin = Math.max(1, parseInt(inputTimeout.value, 10) || 5);

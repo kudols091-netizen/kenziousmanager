@@ -349,6 +349,8 @@ class VoiceSynthesizer {
         }
 
         const fileStream = fs.createWriteStream(outputFile);
+        res.on('error', (e) => { try { fileStream.destroy(); } catch (_) {} reject(new Error('ElevenLabs stream lỗi: ' + e.message)); });
+        fileStream.on('error', (e) => reject(new Error('Ghi file TTS lỗi: ' + e.message)));
         res.pipe(fileStream);
 
         fileStream.on('finish', () => {
@@ -364,6 +366,7 @@ class VoiceSynthesizer {
       });
 
       req.on('error', (e) => reject(new Error(`ElevenLabs Request Error: ${e.message}`)));
+      req.setTimeout(120000, () => req.destroy(new Error('ElevenLabs quá thời gian chờ (120s).')));
       req.write(payload);
       req.end();
     });

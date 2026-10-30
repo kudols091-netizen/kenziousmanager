@@ -169,7 +169,8 @@ function initAiStudio() {
         const rate = sVal >= 0 ? `+${sVal}%` : `${sVal}%`;
         const pitch = pVal >= 0 ? `+${pVal}Hz` : `${pVal}Hz`;
         const settings = await window.api.getSettings();
-        const outputDir = (settings && settings.outputDir) || 'D:\\KOAL\\Kenzious Reel V2\\output';
+        const outputDir = settings && settings.outputDir;
+        if (!outputDir) throw new Error('Chưa đặt Thư mục xuất trong Cài đặt — hãy chọn thư mục xuất trước khi nghe thử.');
         const tempAudioPath = `${outputDir}\\preview_tts_${Date.now()}.mp3`;
 
         const engine = selectEngine ? selectEngine.value : 'edge-tts';

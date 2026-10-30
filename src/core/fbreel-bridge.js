@@ -72,6 +72,7 @@ const FB4A_UA = 'Dalvik/2.1.0 (Linux; U; Android 9; 23113RKC6C Build/PQ3A.190705
 const DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 
 const reelBuffers = new Map(); // uploadId -> Array<Buffer>
+const reelBufferTs = new Map(); // uploadId -> thời điểm hoạt động cuối (dọn buffer mồ côi khi upload bị ngắt)
 
 // BigInt Helper Functions for RSA PKCS#1 v1.5 Encryption
 function _fbaB64urlBig(s) {
@@ -489,6 +490,13 @@ async function uploadPhoto({ url, cookie = '', b64 = '', fileName = 'photo.jpg',
  * Upload Video Reel Chunk
  */
 async function uploadReelChunk({ uploadId = 'r0', b64 = '', last = false, url = '', headers = {} }) {
+  // Dọn buffer reel mồ côi (upload bị ngắt, không bao giờ nhận last=true) quá 10 phút -> tránh rò RAM.
+  const nowTs = Date.now();
+  for (const [id, ts] of reelBufferTs) {
+    if (nowTs - ts > 10 * 60 * 1000) { reelBuffers.delete(id); reelBufferTs.delete(id); }
+  }
+  reelBufferTs.set(uploadId, nowTs);
+
   if (!reelBuffers.has(uploadId)) {
     reelBuffers.set(uploadId, []);
   }
@@ -504,6 +512,7 @@ async function uploadReelChunk({ uploadId = 'r0', b64 = '', last = false, url = 
 
   const totalBuf = Buffer.concat(reelBuffers.get(uploadId) || []);
   reelBuffers.delete(uploadId);
+  reelBufferTs.delete(uploadId);
 
   const reqHeaders = Object.assign({}, headers);
   const proxy = findCloneProxy({ url, headers: reqHeaders });

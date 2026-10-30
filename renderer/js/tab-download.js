@@ -853,6 +853,12 @@ async function startBatchExecution(isTest15s = false) {
   const outputDir = (inputOutputDir && inputOutputDir.value)
     ? inputOutputDir.value
     : ((await window.api.getSettings().catch(() => null)) || {}).outputDir;
+  if (!outputDir) {
+    alert('Chưa có Thư mục xuất. Vào Cài đặt → Thư mục xuất (hoặc nhập ô "Thư mục xuất" bên dưới) rồi thử lại.');
+    isBatchRunning = false;
+    if (btnBatch) btnBatch.innerHTML = originalText;
+    return;
+  }
   const isAiDubbing = document.getElementById('toggleAiDubbing') ? document.getElementById('toggleAiDubbing').checked : false;
   const selectVoice = document.getElementById('selectVoice');
   const selectedVoice = selectVoice ? selectVoice.value : 'vi-VN-HoaiMyNeural';
