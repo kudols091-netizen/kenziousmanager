@@ -3798,10 +3798,10 @@
     SEEDING = true; SEEDSTOP = false; updateSeedBtns();
     seedLog('⏰ Chạy lịch seeding (' + fmtWhen(sch.runAt, sch.tz) + '): ' + (sch.posts ? sch.posts.length : 0) + ' bài · ' + (sch.seeders ? sch.seeders.length : 0) + ' fanpage.');
     // Gắn lại cookie clone sống (theo id page) để đường GraphQL đóng-vai-Page dùng được sau khi mở lại trình duyệt.
-    var res, seeders = (sch.seeders || []).filter(function (x) { return x.token; }).map(function (x) {
+    var res, seeders = (sch.seeders || []).map(function (x) {
       var cl = null; for (var ci = 0; ci < CLONES.length; ci++) { var c = CLONES[ci]; if ((c.ptok && c.ptok[x.id]) || (c.byId && c.byId[x.id])) { cl = c; break; } }
       return { id: x.id, token: (cl && cl.ptok && cl.ptok[x.id]) || x.token, name: x.name || '', clone: x.clone, cl: cl, cookie: (cl && cl.cookie) || '' };
-    });
+    }).filter(function (s) { return s.token || s.cookie; });  // GraphQL đóng-vai-Page chỉ cần cookie -> không bắt buộc token (khớp seed-ngay)
     try {
       if (seeders.length < 2) { sch.status = 'failed'; sch.result = { ok: 0, err: 0 }; seedLog('⏰ Lịch THẤT BẠI: không còn đủ fanpage hợp lệ.', 'err'); }
       else {
@@ -4392,7 +4392,7 @@
         if (_mi >= 0 && seed[_mi]) { var _nm = seedNorm(seed[_mi]); if (_nm.t.trim() || _nm.imgs.length) pk = _nm; }
         if (!pk) pk = pickSeedRaw(seed, { done: cnt[s.id] || 0, offset: (s._si || 0) + ti }, true);
         var msg = spin(pk.t), imgs = pk.imgs || [];
-        if (!msg && !imgs.length) { SEEDSTOP = true; break; }
+        if (!msg && !imgs.length) { continue; }  // mẫu này rỗng -> bỏ qua seeder này, KHÔNG dừng cả phiên
         try {
           if (opts.react && opts.react !== 'off') {
             var rn = (opts.react === 'random') ? REACT_NAMES[Math.floor(Math.random() * REACT_NAMES.length)] : opts.react;

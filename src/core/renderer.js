@@ -134,6 +134,7 @@ class Renderer {
       let stdout = '';
 
       proc.stdout.on('data', data => stdout += data.toString());
+      proc.on('error', () => resolve({ duration: 60, width: 1080, height: 1920 }));
       proc.on('close', code => {
         if (code === 0) {
           try {
@@ -192,7 +193,7 @@ class Renderer {
       filters.push(
         `[${currentV}]split[bg][fg];` +
         `[bg]scale=${targetW}:${targetH}:force_original_aspect_ratio=increase,crop=${targetW}:${targetH},` +
-        `scale=${targetW / 4}:${targetH / 4},gblur=sigma=${sigma},scale=${targetW}:${targetH}:flags=lanczos[bgb];` +
+        `scale=${Math.round(targetW / 4)}:${Math.round(targetH / 4)},gblur=sigma=${sigma},scale=${targetW}:${targetH}:flags=lanczos[bgb];` +
         `[fg]scale=${targetW}:${targetH}:force_original_aspect_ratio=decrease[fgf];` +
         `[bgb][fgf]overlay=(W-w)/2:(H-h)/2,setsar=1[v_canvas]`
       );

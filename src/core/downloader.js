@@ -185,6 +185,8 @@ class Downloader {
         stderr += data.toString();
       });
 
+      proc.on('error', err => reject(new Error('Không chạy được yt-dlp (thiếu bin/yt-dlp.exe?): ' + err.message)));
+
       proc.on('close', code => {
         if (code === 0) {
           try {
@@ -423,7 +425,7 @@ class Downloader {
           resolve({ isPlaylist: true, title: 'Instagram @' + user, uploader: user, platform: 'instagram', entries });
         });
       });
-      req.on('timeout', () => { req.destroy(new Error('Scraper IG quá thời gian chờ (60s). Thử lại hoặc giảm số lượng.')); });
+      req.on('timeout', () => { reject(new Error('Scraper IG quá thời gian chờ (60s) — thử lại hoặc giảm số lượng.')); req.destroy(); });
       req.on('error', (e) => reject(new Error('Không kết nối được scraper IG (cổng 5055). Mở lại app để bật server IG. Chi tiết: ' + e.message)));
       req.write(body);
       req.end();
@@ -454,6 +456,8 @@ class Downloader {
 
       proc.stdout.on('data', data => { stdout += data.toString(); });
       proc.stderr.on('data', data => { stderr += data.toString(); });
+
+      proc.on('error', err => reject(new Error('Không chạy được yt-dlp (thiếu bin/yt-dlp.exe?): ' + err.message)));
 
       proc.on('close', code => {
         if (code === 0) {
