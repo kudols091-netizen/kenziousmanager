@@ -627,7 +627,8 @@ class ChannelManager {
               await browser.close().catch(() => {});
               this.activeBrowsers.delete(accountId);
               onStatusUpdate('Đã lấy cookie — đang điền vào ô dán để bạn kiểm tra.');
-              resolve({ cookie: cookieStr, cookies: currentCookies, displayName, uid, token: token || '' });
+              // Chỉ trả chuỗi cookie + tên hiển thị (không đẩy mảng cookie thô / token EAAB xuống renderer).
+              resolve({ cookie: cookieStr, displayName });
               return;
             }
 

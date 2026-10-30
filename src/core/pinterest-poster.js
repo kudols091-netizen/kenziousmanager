@@ -71,10 +71,12 @@ function buildMultipart(fields, file) {
   return { body: Buffer.concat(parts), contentType: `multipart/form-data; boundary=${boundary}` };
 }
 
-function authHeaders(cookieStr, csrf) {
+// Header theo ctx (không mutate biến module -> an toàn khi 2 nick chạy song song).
+function authHeaders(ctx) {
   return Object.assign({}, RES_HEADERS, {
-    'Cookie': cookieStr,
-    'X-CSRFToken': csrf,
+    'X-APP-VERSION': ctx.appVersion || RES_HEADERS['X-APP-VERSION'],
+    'Cookie': ctx.cookie,
+    'X-CSRFToken': ctx.csrf,
     'X-Requested-With': 'XMLHttpRequest'
   });
 }
@@ -83,7 +85,7 @@ async function resPost(ctx, resource, options) {
   const body = 'source_url=' + SOURCE_URL + '&data=' + encodeURIComponent(JSON.stringify({ options, context: {} }));
   const r = await proxyNet.proxyFetch(PIN + '/resource/' + resource + '/', {
     method: 'POST', proxy: ctx.proxy, timeoutMs: 45000,
-    headers: Object.assign(authHeaders(ctx.cookie, ctx.csrf), { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }),
+    headers: Object.assign(authHeaders(ctx), { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }),
     body
   });
   let json = null; try { json = await r.json(); } catch (_) {}
@@ -92,7 +94,7 @@ async function resPost(ctx, resource, options) {
 async function resGet(ctx, resource, options) {
   const qs = 'source_url=' + SOURCE_URL + '&data=' + encodeURIComponent(JSON.stringify({ options, context: {} }));
   const r = await proxyNet.proxyFetch(PIN + '/resource/' + resource + '/?' + qs, {
-    method: 'GET', proxy: ctx.proxy, timeoutMs: 30000, headers: authHeaders(ctx.cookie, ctx.csrf)
+    method: 'GET', proxy: ctx.proxy, timeoutMs: 30000, headers: authHeaders(ctx)
   });
   let json = null; try { json = await r.json(); } catch (_) {}
   return { ok: r.ok, status: r.status, json };
@@ -109,8 +111,7 @@ async function getViewer(ctx) {
   let data; try { data = JSON.parse(m[1]); } catch (_) { return null; }
   const c = data.context || {};
   if (c.is_authenticated && c.user && c.user.username) {
-    if (data.appVersion) RES_HEADERS['X-APP-VERSION'] = data.appVersion;
-    return { username: c.user.username };
+    return { username: c.user.username, appVersion: data.appVersion || '' };
   }
   return null;
 }
@@ -205,31 +206,33 @@ async function createVideoPin(ctx, { boardId, title, description, link, videoBuf
   if (onLog) onLog('Đang tải video lên Pinterest...');
   const up = buildMultipart(ticket.params, { field: 'file', filename: 'video.mp4', contentType: mime || 'video/mp4', buffer: videoBuffer });
   const s3 = await proxyNet.proxyFetch(ticket.url, { method: 'POST', proxy: ctx.proxy, timeoutMs: 180000, headers: { 'Content-Type': up.contentType }, body: up.body });
-  if (!s3.ok && s3.status !== 201 && s3.status !== 204) return { ok: false, error: 'Upload S3 lỗi HTTP ' + s3.status };
+  if (!(s3.status >= 200 && s3.status < 400)) return { ok: false, error: 'Upload video lên máy chủ lỗi HTTP ' + s3.status };
 
-  // 3) Poll trạng thái xử lý
+  // 3) Poll trạng thái xử lý — resGet, upload_ids là MẢNG THÔ; hết giờ -> BÁO LỖI (không coi là xong).
   if (onLog) onLog('Pinterest đang xử lý video...');
   const deadline = Date.now() + MAX_WAIT_MS;
-  while (Date.now() < deadline) {
-    await new Promise(r => setTimeout(r, POLL_MS));
-    let st = '';
-    try {
-      const r = await resPost(ctx, 'ApiResource/get', { url: '/v3/media/uploads/', data: { upload_ids: ticket.id } });
-      st = readStatus(resData(r), ticket.id);
-    } catch (_) {}
-    if (XONG.test(st)) break;
-    if (HONG.test(st)) return { ok: false, error: 'Pinterest xử lý video thất bại (' + st + ')' };
+  let status = '';
+  for (;;) {
+    let r = null;
+    try { r = await resGet(ctx, 'ApiResource/get', { url: '/v3/media/uploads/', data: { upload_ids: [ticket.id] } }); } catch (_) {}
+    if (r && r.ok) status = readStatus(resData(r), ticket.id) || status;
+    if (XONG.test(status)) break;
+    if (HONG.test(status)) return { ok: false, error: 'Pinterest xử lý video thất bại (' + status + ')' };
+    if (Date.now() >= deadline) return { ok: false, error: 'Video xử lý quá lâu (trạng thái ' + (status || 'không rõ') + ')' };
+    await new Promise(r2 => setTimeout(r2, POLL_MS));
   }
 
   // 4) Tạo pin với media_upload_id
-  const r = await resPost(ctx, 'PinResource/create', {
+  const createOpts = {
     board_id: boardId,
     title: String(title || '').slice(0, 100),
     description: String(description || '').slice(0, 500),
     link: link || '',
     media_upload_id: ticket.id,
-    image_url: coverUrl || ''
-  });
+    method: 'uploaded'
+  };
+  if (coverUrl) createOpts.image_url = coverUrl;
+  const r = await resPost(ctx, 'PinResource/create', createOpts);
   const pin = resData(r);
   if (r.ok && pin && pin.id) return { ok: true, id: String(pin.id) };
   return { ok: false, error: resError(r) || ('HTTP ' + r.status) };
@@ -249,6 +252,7 @@ async function publishPin(item, account, onProgress = () => {}) {
   log('Xác thực phiên Pinterest...');
   const viewer = await getViewer(ctx);
   if (!viewer) return { ok: false, error: 'Chưa đăng nhập Pinterest (cookie hết hạn?).' };
+  ctx.appVersion = viewer.appVersion || '';
 
   const boards = await fetchBoards(ctx, viewer.username);
   if (!boards.length) return { ok: false, error: 'Nick chưa có Board nào — tạo 1 Board trên Pinterest trước.' };
