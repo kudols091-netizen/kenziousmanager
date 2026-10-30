@@ -280,14 +280,16 @@ function initToolkit() {
 
       try {
         const settings = await window.api.getSettings();
-        const baseOutDir = settings.outputDir || 'D:\\KOAL\\Kenzious Reel V2\\output';
+        const baseOutDir = settings && settings.outputDir;
+        if (!baseOutDir) throw new Error('Chưa đặt Thư mục xuất trong Cài đặt — hãy chọn thư mục xuất trước.');
         const stemDir = `${baseOutDir}\\stems_${Date.now()}`;
 
         const res = await window.api.separateAudio(targetFile, stemDir);
+        if (!res || !res.vocalsPath || !res.noVocalsPath) throw new Error((res && res.error) || 'Tách nhạc thất bại — không có file kết quả.');
         currentStemResult = { ...res, stemDir };
 
         if (feedback) {
-          const methodLabel = res.method.includes('demucs') ? 'Demucs AI Model' : 'FFmpeg Spectral Phase Inversion';
+          const methodLabel = (res.method || '').includes('demucs') ? 'Demucs AI Model' : 'FFmpeg Spectral Phase Inversion';
           const vocalsUrl = `file:///${res.vocalsPath.replace(/\\/g, '/')}`;
           const noVocalsUrl = `file:///${res.noVocalsPath.replace(/\\/g, '/')}`;
 

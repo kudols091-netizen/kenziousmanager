@@ -66,7 +66,8 @@ class ChannelManager {
     args.push(url || 'https://www.instagram.com/');
     try {
       const child = require('child_process').spawn(execPath, args, { detached: true, stdio: 'ignore' });
-      child.unref();
+      child.on('error', (e) => console.error('[ChannelManager] Không mở được Chromium:', e && e.message));
+    child.unref();
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
@@ -293,6 +294,8 @@ class ChannelManager {
         const parsed = JSON.parse(rawInput);
         cookies = Array.isArray(parsed) ? parsed : [parsed];
       } else {
+        // Domain đúng theo nền tảng (threads.net/zalo.me/shopee.vn/pinterest.com...), không phải .<platform>.com cứng.
+        const ckDomain = { threads: '.threads.net', zalo: '.zalo.me', shopee: '.shopee.vn', pinterest: '.pinterest.com', douyin: '.douyin.com' }[platform] || `.${platform}.com`;
         const pairs = rawInput.split(';');
         for (const pair of pairs) {
           const idx = pair.indexOf('=');
@@ -300,7 +303,7 @@ class ChannelManager {
             const name = pair.substring(0, idx).trim();
             const value = pair.substring(idx + 1).trim();
             if (name && value) {
-              cookies.push({ name, value, domain: `.${platform}.com` });
+              cookies.push({ name, value, domain: ckDomain });
             }
           }
         }
@@ -423,6 +426,7 @@ class ChannelManager {
       detached: true,
       stdio: 'ignore'
     });
+    child.on('error', (e) => console.error('[ChannelManager] Không mở được Chromium:', e && e.message));
     child.unref();
 
     // 2. Ket noi Puppeteer qua Chrome DevTools Protocol de bat cookie tu dong
@@ -740,6 +744,7 @@ class ChannelManager {
       detached: true,
       stdio: 'ignore'
     });
+    child.on('error', (e) => console.error('[ChannelManager] Không mở được Chromium:', e && e.message));
     child.unref();
 
     let browser = null;
@@ -756,6 +761,7 @@ class ChannelManager {
 
     if (browser) {
       this.activeBrowsers.set(accountId, browser);
+      browser.on('disconnected', () => this.activeBrowsers.delete(accountId));
     }
 
     return { success: true, message: `Đã mở trình duyệt profile cho ${acc.displayName}` };
@@ -805,6 +811,7 @@ class ChannelManager {
     args.push('about:blank');
 
     const child = require('child_process').spawn(execPath, args, { detached: true, stdio: 'ignore' });
+    child.on('error', (e) => console.error('[ChannelManager] Không mở được Chromium:', e && e.message));
     child.unref();
 
     let browser = null;

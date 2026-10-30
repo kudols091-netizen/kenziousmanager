@@ -843,6 +843,7 @@ function initAddAccountModal() {
             : 'Vui lòng dán Cookie hợp lệ!');
           return;
         }
+        btnSubmit.disabled = true;
         try {
           await window.api.importCookies(selectedPlatform, cookieData, proxy);
           closeModal();
@@ -851,6 +852,8 @@ function initAddAccountModal() {
           alert('Đã kết nối tài khoản ' + platName + ' thành công!');
         } catch (err) {
           alert('Lỗi kết nối: ' + err.message);
+        } finally {
+          btnSubmit.disabled = false;
         }
       } else {
         try {

@@ -853,9 +853,11 @@ Nhiệm vụ: hiểu ý cả đoạn rồi viết lại kịch bản tiếng Vi�
 5) Đúng cảm xúc cảnh + khớp thời lượng đọc
 6) Nối dẫn giống chữ gốc.
 Naturalness over literalness: chọn câu nói tự nhiên đúng ý thay vì dịch sát chữ.`;
-        if (activeStyleId === 'general') {
-          promptsData.masterPrompt = defaultPrompt;
+        if (activeStyleId !== 'general') {
+          alert('Khôi phục mặc định chỉ áp dụng cho "Prompt chung" — hãy chọn tab Prompt chung rồi thử lại.');
+          return;
         }
+        promptsData.masterPrompt = defaultPrompt;
         if (textareaPrompt) textareaPrompt.value = promptsData.masterPrompt;
         await window.api.savePrompts(promptsData);
       }
@@ -1002,7 +1004,7 @@ async function loadLicenseSettingsStudio() {
 
   try {
     const status = await window.api.licenseGetStatus();
-    const currentHwid = status.hwid || (window.api.licenseGetHWID ? await window.api.licenseGetHWID() : '');
+    const currentHwid = (status && status.hwid) || (window.api.licenseGetHWID ? await window.api.licenseGetHWID() : '');
 
     if (hwidEl) hwidEl.innerText = currentHwid || 'Không lấy được';
 
